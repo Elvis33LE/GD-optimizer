@@ -4,7 +4,6 @@ import base64
 
 # --- 1. CONFIGURATION: DATA & ASSETS ---
 
-# Your specific cards/notes
 TURRET_DATA = {
     "Guardian (Mecha)":   {"type": "🦾 Phys", "card": "Splitting Bullet", "color": "#00d2d3", "icon": "guardian"},
     "Teslacoil":          {"type": "⚡ Elec", "card": "Chain Surge (No Stun)", "color": "#a55eea", "icon": "tesla"},
@@ -175,6 +174,19 @@ waves_data = [(e1, loadout[0]), (e2, loadout[1]), (e3, loadout[2])]
 
 st.divider()
 
+# --- MOVED: Card Requirements Check (Top View) ---
+# Expanded by default for quick checking
+with st.expander("📝 Check Your Card Setup", expanded=True):
+    dc1, dc2, dc3 = st.columns(3)
+    for i, col in enumerate([dc1, dc2, dc3]):
+        with col:
+            st.caption(f"Wave {i+1}")
+            for t in loadout[i]:
+                # Splits name to remove (Info) and shows just the required card
+                st.markdown(f"- {t.split('(')[0]}: `{TURRET_DATA[t]['card']}`")
+
+st.markdown("<br>", unsafe_allow_html=True)
+
 # --- 5. THE 3x3 GRID RENDERER ---
 # Loop through each wave (rows)
 for i, (enemy_name, turrets) in enumerate(waves_data):
@@ -210,14 +222,4 @@ for i, (enemy_name, turrets) in enumerate(waves_data):
                 </div>
             </div>
             """, unsafe_allow_html=True)
-
-# Details section at the bottom
-st.markdown("<br>", unsafe_allow_html=True)
-with st.expander("📝 Card Requirements Check", expanded=False):
-    dc1, dc2, dc3 = st.columns(3)
-    for i, col in enumerate([dc1, dc2, dc3]):
-        with col:
-            st.caption(f"Wave {i+1} Cards")
-            for t in loadout[i]:
-                st.markdown(f"- {t.split('(')[0]}: `{TURRET_DATA[t]['card']}`")
-    
+            
