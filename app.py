@@ -132,12 +132,13 @@ st.markdown("""
     .main .block-container { padding-top: 1rem; padding-bottom: 5rem; padding-left: 0.5rem; padding-right: 0.5rem; }
     h1 { font-size: 1.1rem !important; color: #888; text-transform: uppercase; margin-bottom: 0px; text-align: center; }
     
-    /* FORCE HORIZONTAL GRID */
+    /* THE FIX: CSS GRID FORCES HORIZONTAL LAYOUT */
     .wave-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 5px;
+        grid-template-columns: repeat(3, 1fr); /* Exactly 3 columns of equal width */
+        gap: 6px; /* Gap between cards */
         margin-bottom: 15px;
+        width: 100%;
     }
 
     /* CARD STYLE */
@@ -147,12 +148,13 @@ st.markdown("""
         border-radius: 4px;
         padding: 4px;
         text-align: center;
-        height: 110px;
+        height: 100px; /* Fixed compact height */
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         position: relative;
+        min-width: 0; /* Prevents overflow */
     }
     
     .combo-active {
@@ -160,10 +162,22 @@ st.markdown("""
         background: radial-gradient(circle, rgba(241,196,15,0.1) 0%, rgba(26,26,26,1) 80%);
     }
 
-    .turret-icon { width: 35px; height: 35px; margin-bottom: 2px; }
-    .turret-name { font-size: 0.65rem; font-weight: 700; color: #eee; line-height: 1; margin-bottom: 2px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; width: 100%; }
-    .turret-meta { font-size: 0.55rem; color: #aaa; margin-bottom: 2px;}
-    .turret-score { font-size: 0.65rem; font-weight: bold; }
+    .turret-icon { width: 30px; height: 30px; margin-bottom: 3px; }
+    
+    /* Text truncating to prevent breaking layout */
+    .turret-name { 
+        font-size: 0.6rem; 
+        font-weight: 700; 
+        color: #eee; 
+        line-height: 1; 
+        margin-bottom: 2px; 
+        white-space: nowrap; 
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+        width: 100%; 
+    }
+    .turret-meta { font-size: 0.5rem; color: #aaa; margin-bottom: 2px;}
+    .turret-score { font-size: 0.6rem; font-weight: bold; }
     .tactic-note { font-size: 0.5rem; color: #aaa; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;}
     
     .wave-label {
@@ -206,7 +220,7 @@ waves_data = [(e1, loadout[0]), (e2, loadout[1]), (e3, loadout[2])]
 st.divider()
 
 # --- THE HTML GRID RENDERER ---
-# This loop builds HTML strings instead of using st.columns to force horizontal layout
+# This builds pure HTML blocks to guarantee 3-column layout on mobile
 for i, (enemy_name, turrets) in enumerate(waves_data):
     # Combo Check
     c_names, c_turrets = check_combos(turrets)
