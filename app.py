@@ -30,7 +30,7 @@ ENEMIES = [
     "Elite Alien Golem (Split Boss)"
 ]
 
-# Scoring Logic (From previous interaction)
+# Scoring Logic
 SCORES = {
     ("Pristine Starcore (Healer)", "Guardian (Mecha)"): 100,
     ("Pristine Starcore (Healer)", "Teslacoil"): 95,
@@ -70,21 +70,29 @@ SCORES = {
     ("Elite Alien Golem (Split Boss)", "Teslacoil"): 10,
 }
 
-# --- 2. SVG GENERATION HELPERS ---
-# We store the paths directly here to generate them on the fly
+# --- 2. REFINED HIGH-DETAIL SVGS ---
 def get_svg_content(icon_name, color):
+    # These are much more detailed, layered SVGs for a better look.
     paths = {
-        "tesla": '<path d="M20,90 L80,90 L70,70 L30,70 Z" opacity="0.5"/><rect x="35" y="30" width="30" height="40" transform="rotate(-45 50 50)" rx="5" /><rect x="45" y="10" width="10" height="30" transform="rotate(-45 50 50)" /><line x1="30" y1="40" x2="60" y2="70" stroke="#000" stroke-width="2" opacity="0.3"/><line x1="35" y1="35" x2="65" y2="65" stroke="#000" stroke-width="2" opacity="0.3"/>',
-        "skyguard": '<path d="M20,90 L80,90 L70,75 L30,75 Z" opacity="0.5"/><rect x="25" y="35" width="50" height="35" rx="4" transform="rotate(-15 50 60)"/><rect x="65" y="40" width="20" height="25" rx="2" transform="rotate(-15 50 60)"/><circle cx="40" cy="50" r="3" fill="#fff" />',
-        "disruption": '<path d="M45,90 L55,90 L55,50 L45,50 Z" /><path d="M30,90 L70,90 L60,80 L40,80 Z" opacity="0.5"/><circle cx="30" cy="40" r="12" /><circle cx="70" cy="40" r="12" /><rect x="40" y="38" width="20" height="4" rx="2" />',
-        "guardian": '<path d="M35,90 L45,60 L55,60 L65,90" stroke="currentColor" stroke-width="8" stroke-linecap="round" fill="none"/><circle cx="50" cy="30" r="10" /><rect x="30" y="40" width="40" height="25" rx="5" /><circle cx="20" cy="50" r="8" /><circle cx="80" cy="50" r="8" />',
-        "thunderbolt": '<path d="M30,90 L70,90 L60,75 L40,75 Z" opacity="0.5"/><rect x="42" y="55" width="16" height="20" /><ellipse cx="50" cy="55" rx="25" ry="8" fill="none" stroke="currentColor" stroke-width="4"/><ellipse cx="50" cy="70" rx="20" ry="6" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="50" cy="35" r="12" fill="#fff" opacity="0.9"/>',
-        "beam": '<path d="M25,90 L75,90 L65,75 L35,75 Z" opacity="0.5"/><rect x="30" y="35" width="8" height="40" transform="rotate(-30 50 85)" /><rect x="62" y="35" width="8" height="40" transform="rotate(30 50 85)" /><rect x="46" y="25" width="8" height="50" /><circle cx="50" cy="35" r="6" fill="#fff" opacity="0.8"/>',
-        "firewheel": '<path d="M30,90 L70,90 L60,75 L40,75 Z" opacity="0.5"/><path d="M50,20 Q70,45 65,60 T50,85 Q30,70 35,60 T50,20 Z" /><circle cx="50" cy="50" r="5" fill="#fff" />',
-        "aeroblast": '<path d="M20,90 L80,90 L70,75 L30,75 Z" opacity="0.5"/><rect x="35" y="45" width="30" height="30" rx="4" /><rect x="38" y="15" width="8" height="40" transform="rotate(-45 50 55)" /><rect x="54" y="15" width="8" height="40" transform="rotate(-45 50 55)" /><rect x="40" y="30" width="20" height="5" transform="rotate(-45 50 55)" fill="#000" opacity="0.3"/>',
-        "vortex": '<path d="M30,90 L70,90 L60,80 L40,80 Z" opacity="0.5"/><circle cx="50" cy="50" r="20" stroke="currentColor" stroke-width="6" fill="none" /><path d="M50,50 L80,20" stroke="currentColor" stroke-width="4" stroke-linecap="round" /><circle cx="50" cy="50" r="6" fill="#000" />'
+        "tesla": f'<circle cx="50" cy="85" r="15" fill="{color}" opacity="0.3"/><ellipse cx="50" cy="70" rx="25" ry="10" fill="none" stroke="{color}" stroke-width="4" opacity="0.6"/><ellipse cx="50" cy="55" rx="20" ry="8" fill="none" stroke="{color}" stroke-width="4" opacity="0.8"/><ellipse cx="50" cy="40" rx="15" ry="6" fill="none" stroke="{color}" stroke-width="4"/><circle cx="50" cy="25" r="8" fill="#fff"/><path d="M50,25 L30,5 M50,25 L70,5" stroke="#fff" stroke-width="2"/>',
+        
+        "skyguard": f'<rect x="20" y="60" width="60" height="30" rx="5" fill="{color}" opacity="0.4"/><rect x="30" y="40" width="15" height="30" fill="{color}"/><rect x="55" y="40" width="15" height="30" fill="{color}"/><path d="M37,40 L37,10 L45,20 L37,40" fill="#fff" opacity="0.9"/><path d="M62,40 L62,10 L70,20 L62,40" fill="#fff" opacity="0.9"/>',
+        
+        "disruption": f'<circle cx="50" cy="50" r="45" fill="none" stroke="{color}" stroke-width="2" opacity="0.3"/><circle cx="30" cy="50" r="10" fill="{color}" opacity="0.7"/><circle cx="70" cy="50" r="10" fill="{color}" opacity="0.7"/><path d="M30,50 Q50,20 70,50 Q50,80 30,50" fill="none" stroke="#fff" stroke-width="3" opacity="0.6"/><circle cx="30" cy="50" r="4" fill="#fff"/><circle cx="70" cy="50" r="4" fill="#fff"/>',
+        
+        "guardian": f'<path d="M30,80 L70,80 L60,30 L40,30 Z" fill="{color}" opacity="0.5"/><rect x="40" y="20" width="20" height="20" rx="4" fill="{color}"/><circle cx="50" cy="30" r="6" fill="#fff"/><rect x="25" y="35" width="10" height="25" rx="2" fill="{color}" opacity="0.8"/><rect x="65" y="35" width="10" height="25" rx="2" fill="{color}" opacity="0.8"/><circle cx="50" cy="55" r="10" fill="none" stroke="#fff" stroke-width="3"/>',
+        
+        "thunderbolt": f'<circle cx="50" cy="50" r="30" fill="{color}" opacity="0.3"/><circle cx="50" cy="50" r="15" fill="{color}"/><path d="M50,10 L55,35 L45,35 L50,10" fill="#fff"/><path d="M50,90 L45,65 L55,65 L50,90" fill="#fff"/><path d="M10,50 L35,45 L35,55 L10,50" fill="#fff"/><path d="M90,50 L65,55 L65,45 L90,50" fill="#fff"/><circle cx="50" cy="50" r="5" fill="#fff"/>',
+        
+        "beam": f'<path d="M20,80 L80,80 L70,60 L30,60 Z" fill="{color}" opacity="0.4"/><rect x="45" y="30" width="10" height="30" fill="{color}"/><path d="M45,30 L50,5 L55,30 Z" fill="#fff"/><path d="M50,5 L20,0 L50,5 L80,0" stroke="{color}" stroke-width="2" opacity="0.6"/>',
+        
+        "firewheel": f'<circle cx="50" cy="50" r="40" fill="none" stroke="{color}" stroke-width="4" opacity="0.5" stroke-dasharray="10,5"/><path d="M50,85 Q30,65 35,45 Q50,10 65,45 Q70,65 50,85 Z" fill="{color}" opacity="0.8"/><path d="M50,75 Q40,60 45,45 Q50,25 55,45 Q60,60 50,75 Z" fill="#fff" opacity="0.6"/>',
+        
+        "aeroblast": f'<rect x="25" y="65" width="50" height="20" rx="4" fill="{color}" opacity="0.4"/><rect x="35" y="35" width="30" height="35" fill="{color}"/><circle cx="50" cy="35" r="15" fill="none" stroke="{color}" stroke-width="5"/><circle cx="50" cy="35" r="5" fill="#fff"/><rect x="65" y="55" width="15" height="15" rx="8" fill="#fff" opacity="0.8"/>',
+        
+        "vortex": f'<circle cx="50" cy="50" r="45" fill="none" stroke="{color}" stroke-width="2" opacity="0.2"/><path d="M50,50 m-35,0 a35,35 0 1,0 70,0 a35,35 0 1,0 -70,0" fill="none" stroke="{color}" stroke-width="6" opacity="0.6" stroke-dasharray="60, 160"/><circle cx="50" cy="50" r="15" fill="#000" stroke="#fff" stroke-width="3"/><path d="M50,50 L85,15" stroke="#fff" stroke-width="3" stroke-linecap="round"/>'
     }
-    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="{color}">{paths.get(icon_name, "")}</svg>'
+    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{paths.get(icon_name, "")}</svg>'
 
 # --- 3. CORE LOGIC ---
 def get_score(enemy, turret):
@@ -99,11 +107,13 @@ def get_tactic_note(enemy, turret, score):
     if "Split Boss" in enemy and "Aeroblast" in turret: return "Spawn Camp Mines"
     if "Shield Boss" in enemy and "Beam" in turret: return "Breaks Shield"
     if score >= 90: return "✅ Counter"
+    if score <= 30: return "⚠️ Resisted"
     return "Fill"
 
 def solve_loadout(e1, e2, e3):
     best_score = -9999
     best_loadout = None
+    # The magic one-liner that finds the perfect no-repeat combination
     for p in itertools.permutations(TURRETS):
         w1, w2, w3 = p[0:3], p[3:6], p[6:9]
         score = sum(get_score(e1, t) for t in w1) + sum(get_score(e2, t) for t in w2) + sum(get_score(e3, t) for t in w3)
@@ -112,107 +122,102 @@ def solve_loadout(e1, e2, e3):
             best_loadout = (w1, w2, w3)
     return best_loadout
 
-# --- 4. APP LAYOUT ---
+# --- 4. APP LAYOUT & CSS ---
 st.set_page_config(page_title="Vanguard 2.0", layout="wide")
 
-# Custom CSS for the "Game Grid" look
 st.markdown("""
 <style>
-    .main .block-container { padding-top: 2rem; }
-    h1 { font-size: 1.5rem !important; color: #aaa; margin-bottom: 0px; }
+    .main .block-container { padding-top: 1rem; padding-bottom: 1rem; }
+    h1 { font-size: 1.2rem !important; color: #888; margin-bottom: 0px; }
+    /* Tighter grid layout for the cards */
     .turret-card {
-        background-color: #1a1a1a;
-        border: 2px solid #333;
-        border-radius: 8px;
-        padding: 10px;
+        background-color: #141414; /* Darker background */
+        border: 1px solid #333;
+        border-radius: 6px;
+        padding: 8px;
         text-align: center;
-        height: 180px;
+        height: 170px; /* Fixed height for alignment */
         display: flex;
         flex-direction: column;
         justify-content: space-between;
         align-items: center;
-        transition: transform 0.2s;
     }
-    .turret-card:hover { border-color: #555; transform: translateY(-2px); }
-    .turret-icon { width: 60px; height: 60px; margin-bottom: 5px; }
-    .turret-name { font-size: 0.85rem; font-weight: bold; color: #fff; line-height: 1.2; }
-    .turret-meta { font-size: 0.75rem; color: #888; margin-top: 4px; }
-    .wave-header { 
-        background-color: #0d0d0d; 
-        color: #fff; 
-        padding: 5px 10px; 
-        border-radius: 4px; 
-        font-weight: bold; 
-        margin-bottom: 10px; 
-        border-left: 4px solid #00d2d3;
+    .turret-icon { width: 55px; height: 55px; margin-bottom: 4px; filter: drop-shadow(0px 0px 3px rgba(255,255,255,0.2)); }
+    .turret-name { font-size: 0.8rem; font-weight: 700; color: #eee; line-height: 1.1; margin-bottom: 2px;}
+    .turret-meta { font-size: 0.7rem; color: #aaa; }
+    .turret-score { font-size: 0.75rem; font-weight: bold; margin-top: 2px; }
+    .tactic-note { font-size: 0.65rem; color: #ffd700; font-style: italic; margin-top: 4px; line-height: 1.1;}
+    
+    /* Wave headers */
+    .wave-row-header {
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: #fff;
+        margin-top: 15px;
+        margin-bottom: 5px;
+        padding-left: 10px;
+        border-left: 4px solid #555;
     }
-    .tactic-note { font-size: 0.7rem; color: #ffd700; font-style: italic; }
 </style>
 """, unsafe_allow_html=True)
 
 st.title("🛡️ Vanguard 2.0")
 
-# --- INPUT SECTION (3 columns side-by-side) ---
+# Input columns
 c1, c2, c3 = st.columns(3)
-with c1: e1 = st.selectbox("Wave 1 Enemy", ENEMIES, index=2)
-with c2: e2 = st.selectbox("Wave 2 Enemy", ENEMIES, index=6)
-with c3: e3 = st.selectbox("Wave 3 Enemy", ENEMIES, index=1)
+with c1: e1 = st.selectbox("Wave 1", ENEMIES, index=2)
+with c2: e2 = st.selectbox("Wave 2", ENEMIES, index=6)
+with c3: e3 = st.selectbox("Wave 3", ENEMIES, index=1)
 
-# --- AUTO CALCULATION ---
-w1, w2, w3 = solve_loadout(e1, e2, e3)
+# Auto-Calculate
+loadout = solve_loadout(e1, e2, e3)
+waves_data = [(e1, loadout[0]), (e2, loadout[1]), (e3, loadout[2])]
 
 st.divider()
 
-# --- OUTPUT GRID RENDERER ---
-def render_wave_column(wave_num, enemy, turrets):
-    st.markdown(f'<div class="wave-header">WAVE {wave_num} <span style="font-weight:normal; opacity:0.7">vs {enemy.split("(")[0]}</span></div>', unsafe_allow_html=True)
+# --- 5. THE 3x3 GRID RENDERER ---
+# Loop through each wave (rows)
+for i, (enemy_name, turrets) in enumerate(waves_data):
+    # Row Header
+    st.markdown(f'<div class="wave-row-header">Wave {i+1} vs {enemy_name.split("(")[0]}</div>', unsafe_allow_html=True)
     
-    cols = st.columns(3) # 3 turrets per wave, side by side
-    for i, t_name in enumerate(turrets):
+    # 3 Columns for Turrets
+    cols = st.columns(3)
+    for j, t_name in enumerate(turrets):
         data = TURRET_DATA[t_name]
+        score = get_score(enemy_name, t_name)
+        note = get_tactic_note(enemy_name, t_name, score)
+        
+        # Generate SVG
         svg = get_svg_content(data['icon'], data['color'])
         b64_svg = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
-        score = get_score(enemy, t_name)
-        note = get_tactic_note(enemy, t_name, score)
         
-        border_color = "#2ecc71" if score >= 90 else "#f1c40f" if score >= 50 else "#e74c3c"
-        
-        with cols[i]:
+        # Color Coding
+        score_color = "#2ecc71" if score >= 90 else "#f1c40f" if score >= 50 else "#e74c3c"
+        border_color = score_color
+
+        with cols[j]:
             st.markdown(f"""
             <div class="turret-card" style="border-bottom: 3px solid {border_color};">
                 <img src="data:image/svg+xml;base64,{b64_svg}" class="turret-icon">
-                <div class="turret-name">{t_name.split('(')[0]}</div>
-                <div class="turret-meta">{data['type']}</div>
-                <div class="tactic-note">{note}</div>
+                <div>
+                    <div class="turret-name">{t_name.split('(')[0]}</div>
+                    <div class="turret-meta">{data['type']}</div>
+                </div>
+                <div>
+                    <div class="turret-score" style="color:{score_color}">Score: {score}</div>
+                    <div class="tactic-note">{note}</div>
+                </div>
             </div>
             """, unsafe_allow_html=True)
 
-# --- DISPLAY THE GRID ---
-# We create 3 big columns for the 3 waves
-main_cols = st.columns(3)
-
-with main_cols[0]:
-    render_wave_column(1, e1, w1)
-
-with main_cols[1]:
-    render_wave_column(2, e2, w2)
-
-with main_cols[2]:
-    render_wave_column(3, e3, w3)
-
-# --- DETAILED DETAILS (Below Grid) ---
+# Details section at the bottom
 st.markdown("<br>", unsafe_allow_html=True)
-with st.expander("📝 Detailed Strategy & Card Requirements", expanded=True):
+with st.expander("📝 Card Requirements Check", expanded=False):
     dc1, dc2, dc3 = st.columns(3)
-    
-    def render_details(col, wave, turrets):
+    for i, col in enumerate([dc1, dc2, dc3]):
         with col:
-            st.caption(f"**Strategy for Wave {wave}**")
-            for t in turrets:
-                d = TURRET_DATA[t]
-                st.markdown(f"**{t}**: Requires `{d['card']}`")
-    
-    render_details(dc1, 1, w1)
-    render_details(dc2, 2, w2)
-    render_details(dc3, 3, w3)
-    
+            st.caption(f"Wave {i+1} Cards")
+            for t in loadout[i]:
+                st.markdown(f"- {t.split('(')[0]}: `{TURRET_DATA[t]['card']}`")
+                
