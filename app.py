@@ -4,6 +4,7 @@ import base64
 
 # --- 1. CONFIGURATION: DATA & ASSETS ---
 
+# Your specific cards/notes
 TURRET_DATA = {
     "Guardian (Mecha)":   {"type": "🦾 Phys", "card": "Splitting Bullet", "color": "#00d2d3", "icon": "guardian"},
     "Teslacoil":          {"type": "⚡ Elec", "card": "Chain Surge (No Stun)", "color": "#a55eea", "icon": "tesla"},
@@ -29,20 +30,8 @@ ENEMIES = [
     "Elite Alien Golem (Split Boss)"
 ]
 
-# Known Synergies (Check for these pairs in a wave)
-COMBOS = [
-    {"pair": {"Sky Guard", "Gravity Vortex"}, "name": "Collapse Explosion", "desc": "Missiles create Black Holes"},
-    {"pair": {"Aeroblast", "Firewheel"}, "name": "Firewheel Summon", "desc": "Explosions spawn Drones"},
-    {"pair": {"Aeroblast", "Laser"}, "name": "Ripping Lasers", "desc": "Shells fire lasers"}, # Laser not in deck, but kept for ref
-    {"pair": {"Disruption Drone", "Thunderbolt"}, "name": "Magnetic Storm", "desc": "Slowed enemies get Zapped"},
-    {"pair": {"Railgun", "Gravity Vortex"}, "name": "Vacuum Shot", "desc": "Shots pull enemies"},
-    # Guardian Synergies
-    {"pair": {"Guardian (Mecha)", "Disruption Drone"}, "name": "Disruption Fire", "desc": "Guardian slows enemies"},
-    {"pair": {"Guardian (Mecha)", "Teslacoil"}, "name": "Electro-Shot", "desc": "Guardian bullets chain"},
-]
-
+# Scoring Logic
 SCORES = {
-    # --- STARCORE (Heals on Debuff) ---
     ("Pristine Starcore (Healer)", "Guardian (Mecha)"): 100,
     ("Pristine Starcore (Healer)", "Teslacoil"): 95,
     ("Pristine Starcore (Healer)", "Sky Guard"): 90,
@@ -52,42 +41,28 @@ SCORES = {
     ("Pristine Starcore (Healer)", "Disruption Drone"): -100,
     ("Pristine Starcore (Healer)", "Beam Turret"): -100,
     ("Pristine Starcore (Healer)", "Gravity Vortex"): -50,
-
-    # --- SCOUT DRONE (Invisible) ---
     ("Alien Scout Drone (Invisible)", "Firewheel"): 100,
     ("Alien Scout Drone (Invisible)", "Aeroblast"): 95,
     ("Alien Scout Drone (Invisible)", "Guardian (Mecha)"): 85,
     ("Alien Scout Drone (Invisible)", "Beam Turret"): 80,
-
-    # --- CROWN GUARD (Sniper) ---
     ("Stellar Crown Guard (Sniper)", "Sky Guard"): 100,
     ("Stellar Crown Guard (Sniper)", "Guardian (Mecha)"): 90,
     ("Stellar Crown Guard (Sniper)", "Disruption Drone"): 85,
-
-    # --- METEORITE (Swarm) ---
     ("Meteorite (Swarm)", "Firewheel"): 100,
     ("Meteorite (Swarm)", "Aeroblast"): 95,
     ("Meteorite (Swarm)", "Thunderbolt"): 90,
-
-    # --- COSMIC CUBE (Tank) ---
     ("Cosmic Cube (Tank)", "Guardian (Mecha)"): 100,
     ("Cosmic Cube (Tank)", "Gravity Vortex"): 100,
     ("Cosmic Cube (Tank)", "Sky Guard"): 95,
     ("Cosmic Cube (Tank)", "Beam Turret"): 10,
     ("Cosmic Cube (Tank)", "Teslacoil"): 10,
-
-    # --- ROCK WALKER (Runner) ---
     ("Rock Walker (Runner)", "Gravity Vortex"): 100,
     ("Rock Walker (Runner)", "Teslacoil"): 100,
     ("Rock Walker (Runner)", "Thunderbolt"): 90,
-
-    # --- BOSS: COLOSSUS (Shield) ---
     ("Elite Rift Colossus (Shield Boss)", "Guardian (Mecha)"): 100,
     ("Elite Rift Colossus (Shield Boss)", "Beam Turret"): 95,
     ("Elite Rift Colossus (Shield Boss)", "Sky Guard"): 85,
     ("Elite Rift Colossus (Shield Boss)", "Disruption Drone"): 30,
-
-    # --- BOSS: GOLEM (Splitter) ---
     ("Elite Alien Golem (Split Boss)", "Aeroblast"): 100,
     ("Elite Alien Golem (Split Boss)", "Guardian (Mecha)"): 90,
     ("Elite Alien Golem (Split Boss)", "Beam Turret"): 85,
@@ -95,58 +70,50 @@ SCORES = {
     ("Elite Alien Golem (Split Boss)", "Teslacoil"): 10,
 }
 
-# --- 2. REFINED SVG ICONS (High Detail) ---
+# --- 2. REFINED HIGH-DETAIL SVGS ---
 def get_svg_content(icon_name, color):
+    # These are much more detailed, layered SVGs for a better look.
     paths = {
-        "tesla": f'<circle cx="50" cy="85" r="15" fill="{color}" opacity="0.3"/><path d="M50,70 L30,30 M50,70 L70,30" stroke="{color}" stroke-width="4"/><circle cx="50" cy="25" r="8" fill="#fff" filter="drop-shadow(0 0 4px {color})"/>',
-        "skyguard": f'<rect x="30" y="40" width="15" height="30" fill="{color}" rx="2"/><rect x="55" y="40" width="15" height="30" fill="{color}" rx="2"/><path d="M20,70 L80,70 L70,90 L30,90 Z" fill="{color}" opacity="0.5"/>',
-        "disruption": f'<circle cx="50" cy="50" r="40" fill="none" stroke="{color}" stroke-width="2" stroke-dasharray="4,4"/><circle cx="30" cy="50" r="8" fill="{color}"/><circle cx="70" cy="50" r="8" fill="{color}"/><path d="M30,50 L70,50" stroke="#fff" stroke-width="2"/>',
-        "guardian": f'<path d="M50,20 L30,50 L30,80 L70,80 L70,50 Z" fill="{color}" opacity="0.8"/><circle cx="50" cy="40" r="6" fill="#fff"/><rect x="45" y="60" width="10" height="20" fill="#222"/>',
-        "thunderbolt": f'<circle cx="50" cy="50" r="25" fill="none" stroke="{color}" stroke-width="3"/><path d="M50,20 L55,45 L40,45 L50,80 L45,55 L60,55 Z" fill="#fff"/>',
-        "beam": f'<path d="M45,40 L55,40 L60,90 L40,90 Z" fill="{color}"/><circle cx="50" cy="30" r="8" fill="#fff"/><line x1="50" y1="30" x2="50" y2="5" stroke="{color}" stroke-width="4"/>',
-        "firewheel": f'<circle cx="50" cy="50" r="35" fill="none" stroke="{color}" stroke-width="5" stroke-dasharray="15,10"/><circle cx="50" cy="50" r="10" fill="#fff"/>',
-        "aeroblast": f'<rect x="20" y="50" width="60" height="20" fill="{color}" rx="5"/><circle cx="50" cy="40" r="15" fill="{color}"/><circle cx="50" cy="40" r="6" fill="#fff"/>',
-        "vortex": f'<circle cx="50" cy="50" r="30" fill="none" stroke="{color}" stroke-width="4"/><path d="M50,50 Q70,30 80,10" stroke="#fff" stroke-width="3" fill="none"/><circle cx="50" cy="50" r="8" fill="#000" stroke="#fff" stroke-width="2"/>'
+        "tesla": f'<circle cx="50" cy="85" r="15" fill="{color}" opacity="0.3"/><ellipse cx="50" cy="70" rx="25" ry="10" fill="none" stroke="{color}" stroke-width="4" opacity="0.6"/><ellipse cx="50" cy="55" rx="20" ry="8" fill="none" stroke="{color}" stroke-width="4" opacity="0.8"/><ellipse cx="50" cy="40" rx="15" ry="6" fill="none" stroke="{color}" stroke-width="4"/><circle cx="50" cy="25" r="8" fill="#fff"/><path d="M50,25 L30,5 M50,25 L70,5" stroke="#fff" stroke-width="2"/>',
+        
+        "skyguard": f'<rect x="20" y="60" width="60" height="30" rx="5" fill="{color}" opacity="0.4"/><rect x="30" y="40" width="15" height="30" fill="{color}"/><rect x="55" y="40" width="15" height="30" fill="{color}"/><path d="M37,40 L37,10 L45,20 L37,40" fill="#fff" opacity="0.9"/><path d="M62,40 L62,10 L70,20 L62,40" fill="#fff" opacity="0.9"/>',
+        
+        "disruption": f'<circle cx="50" cy="50" r="45" fill="none" stroke="{color}" stroke-width="2" opacity="0.3"/><circle cx="30" cy="50" r="10" fill="{color}" opacity="0.7"/><circle cx="70" cy="50" r="10" fill="{color}" opacity="0.7"/><path d="M30,50 Q50,20 70,50 Q50,80 30,50" fill="none" stroke="#fff" stroke-width="3" opacity="0.6"/><circle cx="30" cy="50" r="4" fill="#fff"/><circle cx="70" cy="50" r="4" fill="#fff"/>',
+        
+        "guardian": f'<path d="M30,80 L70,80 L60,30 L40,30 Z" fill="{color}" opacity="0.5"/><rect x="40" y="20" width="20" height="20" rx="4" fill="{color}"/><circle cx="50" cy="30" r="6" fill="#fff"/><rect x="25" y="35" width="10" height="25" rx="2" fill="{color}" opacity="0.8"/><rect x="65" y="35" width="10" height="25" rx="2" fill="{color}" opacity="0.8"/><circle cx="50" cy="55" r="10" fill="none" stroke="#fff" stroke-width="3"/>',
+        
+        "thunderbolt": f'<circle cx="50" cy="50" r="30" fill="{color}" opacity="0.3"/><circle cx="50" cy="50" r="15" fill="{color}"/><path d="M50,10 L55,35 L45,35 L50,10" fill="#fff"/><path d="M50,90 L45,65 L55,65 L50,90" fill="#fff"/><path d="M10,50 L35,45 L35,55 L10,50" fill="#fff"/><path d="M90,50 L65,55 L65,45 L90,50" fill="#fff"/><circle cx="50" cy="50" r="5" fill="#fff"/>',
+        
+        "beam": f'<path d="M20,80 L80,80 L70,60 L30,60 Z" fill="{color}" opacity="0.4"/><rect x="45" y="30" width="10" height="30" fill="{color}"/><path d="M45,30 L50,5 L55,30 Z" fill="#fff"/><path d="M50,5 L20,0 L50,5 L80,0" stroke="{color}" stroke-width="2" opacity="0.6"/>',
+        
+        "firewheel": f'<circle cx="50" cy="50" r="40" fill="none" stroke="{color}" stroke-width="4" opacity="0.5" stroke-dasharray="10,5"/><path d="M50,85 Q30,65 35,45 Q50,10 65,45 Q70,65 50,85 Z" fill="{color}" opacity="0.8"/><path d="M50,75 Q40,60 45,45 Q50,25 55,45 Q60,60 50,75 Z" fill="#fff" opacity="0.6"/>',
+        
+        "aeroblast": f'<rect x="25" y="65" width="50" height="20" rx="4" fill="{color}" opacity="0.4"/><rect x="35" y="35" width="30" height="35" fill="{color}"/><circle cx="50" cy="35" r="15" fill="none" stroke="{color}" stroke-width="5"/><circle cx="50" cy="35" r="5" fill="#fff"/><rect x="65" y="55" width="15" height="15" rx="8" fill="#fff" opacity="0.8"/>',
+        
+        "vortex": f'<circle cx="50" cy="50" r="45" fill="none" stroke="{color}" stroke-width="2" opacity="0.2"/><path d="M50,50 m-35,0 a35,35 0 1,0 70,0 a35,35 0 1,0 -70,0" fill="none" stroke="{color}" stroke-width="6" opacity="0.6" stroke-dasharray="60, 160"/><circle cx="50" cy="50" r="15" fill="#000" stroke="#fff" stroke-width="3"/><path d="M50,50 L85,15" stroke="#fff" stroke-width="3" stroke-linecap="round"/>'
     }
     return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{paths.get(icon_name, "")}</svg>'
 
-# --- 3. LOGIC ---
+# --- 3. CORE LOGIC ---
 def get_score(enemy, turret):
     return SCORES.get((enemy, turret), 50)
 
 def get_tactic_note(enemy, turret, score):
-    if score == -100: return "⚠️ AVOID"
-    if "Starcore" in enemy and "Guardian" in turret: return "Phys (Safe)"
+    if score == -100: return "⚠️ AVOID: Heals/Immune"
+    if "Starcore" in enemy and "Guardian" in turret: return "Phys (No Debuff)"
     if "Invisible" in enemy and "Firewheel" in turret: return "Auto-Track"
     if "Cube" in enemy and "Vortex" in turret: return "Groups Tanks"
-    if "Split Boss" in enemy and "Aeroblast" in turret: return "Mine Trap"
+    if "Walker" in enemy and "Teslacoil" in turret: return "Chain Surge"
+    if "Split Boss" in enemy and "Aeroblast" in turret: return "Spawn Camp Mines"
+    if "Shield Boss" in enemy and "Beam" in turret: return "Breaks Shield"
     if score >= 90: return "✅ Counter"
+    if score <= 30: return "⚠️ Resisted"
     return "Fill"
-
-def check_combos(wave_turrets):
-    # Returns a set of turret names that are part of a combo in this wave
-    active_combos = []
-    combo_turrets = set()
-    
-    # Convert wave tuple to set for checking
-    wave_set = set(t.split('(')[0].strip() for t in wave_turrets)
-    
-    for c in COMBOS:
-        # Check if the pair exists in the current wave
-        # We need to map full names to simple names for checking
-        current_simple_names = {t.split('(')[0].strip(): t for t in wave_turrets}
-        
-        if c["pair"].issubset(set(current_simple_names.keys())):
-            active_combos.append(c["name"])
-            # Add the full turret names to the highlight set
-            for simple in c["pair"]:
-                combo_turrets.add(current_simple_names[simple])
-                
-    return active_combos, combo_turrets
 
 def solve_loadout(e1, e2, e3):
     best_score = -9999
     best_loadout = None
+    # The magic one-liner that finds the perfect no-repeat combination
     for p in itertools.permutations(TURRETS):
         w1, w2, w3 = p[0:3], p[3:6], p[6:9]
         score = sum(get_score(e1, t) for t in w1) + sum(get_score(e2, t) for t in w2) + sum(get_score(e3, t) for t in w3)
@@ -155,130 +122,102 @@ def solve_loadout(e1, e2, e3):
             best_loadout = (w1, w2, w3)
     return best_loadout
 
-# --- 4. APP LAYOUT ---
+# --- 4. APP LAYOUT & CSS ---
 st.set_page_config(page_title="Vanguard 2.0", layout="wide")
 
 st.markdown("""
 <style>
-    .main .block-container { padding-top: 1rem; padding-bottom: 2rem; }
-    h1 { font-size: 1.1rem !important; color: #888; margin-bottom: 0px; text-transform: uppercase; letter-spacing: 2px;}
-    
-    /* Card Styles */
+    .main .block-container { padding-top: 1rem; padding-bottom: 1rem; }
+    h1 { font-size: 1.2rem !important; color: #888; margin-bottom: 0px; }
+    /* Tighter grid layout for the cards */
     .turret-card {
-        background-color: #141414;
+        background-color: #141414; /* Darker background */
         border: 1px solid #333;
         border-radius: 6px;
         padding: 8px;
         text-align: center;
-        height: 160px;
+        height: 170px; /* Fixed height for alignment */
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: space-between;
         align-items: center;
-        position: relative;
     }
+    .turret-icon { width: 55px; height: 55px; margin-bottom: 4px; filter: drop-shadow(0px 0px 3px rgba(255,255,255,0.2)); }
+    .turret-name { font-size: 0.8rem; font-weight: 700; color: #eee; line-height: 1.1; margin-bottom: 2px;}
+    .turret-meta { font-size: 0.7rem; color: #aaa; }
+    .turret-score { font-size: 0.75rem; font-weight: bold; margin-top: 2px; }
+    .tactic-note { font-size: 0.65rem; color: #ffd700; font-style: italic; margin-top: 4px; line-height: 1.1;}
     
-    /* Combo Highlight */
-    .combo-active {
-        border: 1px solid #f1c40f !important;
-        box-shadow: 0 0 8px rgba(241, 196, 15, 0.2);
-        background: radial-gradient(circle, rgba(241,196,15,0.05) 0%, rgba(20,20,20,1) 70%);
-    }
-    
-    .turret-icon { width: 50px; height: 50px; margin-bottom: 6px; }
-    .turret-name { font-size: 0.75rem; font-weight: 700; color: #eee; line-height: 1.1; }
-    .turret-meta { font-size: 0.65rem; color: #aaa; margin-bottom: 4px; }
-    .turret-score { font-size: 0.7rem; font-weight: bold; }
-    .tactic-note { font-size: 0.6rem; color: #aaa; font-style: italic; }
-    
-    /* Combo Badge */
-    .combo-badge {
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        background-color: #f1c40f;
-        color: #000;
-        font-size: 0.5rem;
-        font-weight: bold;
-        padding: 2px 4px;
-        border-radius: 3px;
-        z-index: 10;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    }
-
-    .wave-header {
-        font-size: 0.85rem;
+    /* Wave headers */
+    .wave-row-header {
+        font-size: 0.9rem;
         font-weight: bold;
         color: #fff;
         margin-top: 15px;
         margin-bottom: 5px;
-        padding-left: 8px;
-        border-left: 3px solid #555;
-        display: flex;
-        justify-content: space-between;
+        padding-left: 10px;
+        border-left: 4px solid #555;
     }
-    .combo-text { color: #f1c40f; font-size: 0.7rem; margin-left: 10px; }
 </style>
 """, unsafe_allow_html=True)
 
 st.title("🛡️ Vanguard 2.0")
 
-# Input
+# Input columns
 c1, c2, c3 = st.columns(3)
 with c1: e1 = st.selectbox("Wave 1", ENEMIES, index=2)
 with c2: e2 = st.selectbox("Wave 2", ENEMIES, index=6)
 with c3: e3 = st.selectbox("Wave 3", ENEMIES, index=1)
 
-# Calculate
+# Auto-Calculate
 loadout = solve_loadout(e1, e2, e3)
 waves_data = [(e1, loadout[0]), (e2, loadout[1]), (e3, loadout[2])]
 
 st.divider()
 
-# --- GRID RENDER ---
+# --- 5. THE 3x3 GRID RENDERER ---
+# Loop through each wave (rows)
 for i, (enemy_name, turrets) in enumerate(waves_data):
-    # Check for combos in this wave
-    combo_names, combo_turrets = check_combos(turrets)
+    # Row Header
+    st.markdown(f'<div class="wave-row-header">Wave {i+1} vs {enemy_name.split("(")[0]}</div>', unsafe_allow_html=True)
     
-    # Header with Combo text if active
-    combo_html = f'<span class="combo-text">⚡ {", ".join(combo_names)}</span>' if combo_names else ""
-    st.markdown(f'<div class="wave-header"><span>WAVE {i+1} vs {enemy_name.split("(")[0]}</span>{combo_html}</div>', unsafe_allow_html=True)
-    
+    # 3 Columns for Turrets
     cols = st.columns(3)
     for j, t_name in enumerate(turrets):
         data = TURRET_DATA[t_name]
         score = get_score(enemy_name, t_name)
         note = get_tactic_note(enemy_name, t_name, score)
         
-        # SVG
+        # Generate SVG
         svg = get_svg_content(data['icon'], data['color'])
         b64_svg = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
         
-        # Styles
-        score_color = "#2ecc71" if score >= 90 else "#e74c3c" if score < 0 else "#f1c40f"
-        is_combo = t_name in combo_turrets
-        card_class = "turret-card combo-active" if is_combo else "turret-card"
-        badge_html = '<div class="combo-badge">LINK</div>' if is_combo else ""
-        
+        # Color Coding
+        score_color = "#2ecc71" if score >= 90 else "#f1c40f" if score >= 50 else "#e74c3c"
+        border_color = score_color
+
         with cols[j]:
             st.markdown(f"""
-            <div class="{card_class}">
-                {badge_html}
+            <div class="turret-card" style="border-bottom: 3px solid {border_color};">
                 <img src="data:image/svg+xml;base64,{b64_svg}" class="turret-icon">
-                <div class="turret-name">{t_name.split('(')[0]}</div>
-                <div class="turret-meta">{data['type']}</div>
-                <div class="turret-score" style="color:{score_color}">Score: {score}</div>
-                <div class="tactic-note">{note}</div>
+                <div>
+                    <div class="turret-name">{t_name.split('(')[0]}</div>
+                    <div class="turret-meta">{data['type']}</div>
+                </div>
+                <div>
+                    <div class="turret-score" style="color:{score_color}">Score: {score}</div>
+                    <div class="tactic-note">{note}</div>
+                </div>
             </div>
             """, unsafe_allow_html=True)
 
-# Footer Requirements
+# Details section at the bottom
 st.markdown("<br>", unsafe_allow_html=True)
-with st.expander("📝 Card Requirements", expanded=False):
+with st.expander("📝 Card Requirements Check", expanded=False):
     dc1, dc2, dc3 = st.columns(3)
     for i, col in enumerate([dc1, dc2, dc3]):
         with col:
-            st.caption(f"Wave {i+1}")
+            st.caption(f"Wave {i+1} Cards")
             for t in loadout[i]:
-                st.markdown(f"- `{TURRET_DATA[t]['card']}`")
-            
+                st.markdown(f"- {t.split('(')[0]}: `{TURRET_DATA[t]['card']}`")
+    
