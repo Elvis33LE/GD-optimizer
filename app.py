@@ -29,8 +29,7 @@ ENEMIES = [
     "Elite Alien Golem (Split Boss)"
 ]
 
-# Scoring Logic
-# UPDATED: Heavy penalties for using AoE turrets vs Bosses
+# Scoring Logic (UPDATED: Penalizes AoE vs Single Target Bosses)
 SCORES = {
     # --- STARCORE (Heals on Debuff) ---
     ("Pristine Starcore (Healer)", "Guardian (Mecha)"): 100,
@@ -102,21 +101,13 @@ SCORES = {
 def get_svg_content(icon_name, color):
     paths = {
         "tesla": f'<circle cx="50" cy="85" r="15" fill="{color}" opacity="0.3"/><ellipse cx="50" cy="70" rx="25" ry="10" fill="none" stroke="{color}" stroke-width="4" opacity="0.6"/><ellipse cx="50" cy="55" rx="20" ry="8" fill="none" stroke="{color}" stroke-width="4" opacity="0.8"/><ellipse cx="50" cy="40" rx="15" ry="6" fill="none" stroke="{color}" stroke-width="4"/><circle cx="50" cy="25" r="8" fill="#fff"/><path d="M50,25 L30,5 M50,25 L70,5" stroke="#fff" stroke-width="2"/>',
-        
         "skyguard": f'<rect x="20" y="60" width="60" height="30" rx="5" fill="{color}" opacity="0.4"/><rect x="30" y="40" width="15" height="30" fill="{color}"/><rect x="55" y="40" width="15" height="30" fill="{color}"/><path d="M37,40 L37,10 L45,20 L37,40" fill="#fff" opacity="0.9"/><path d="M62,40 L62,10 L70,20 L62,40" fill="#fff" opacity="0.9"/>',
-        
         "disruption": f'<circle cx="50" cy="50" r="45" fill="none" stroke="{color}" stroke-width="2" opacity="0.3"/><circle cx="30" cy="50" r="10" fill="{color}" opacity="0.7"/><circle cx="70" cy="50" r="10" fill="{color}" opacity="0.7"/><path d="M30,50 Q50,20 70,50 Q50,80 30,50" fill="none" stroke="#fff" stroke-width="3" opacity="0.6"/><circle cx="30" cy="50" r="4" fill="#fff"/><circle cx="70" cy="50" r="4" fill="#fff"/>',
-        
         "guardian": f'<path d="M30,80 L70,80 L60,30 L40,30 Z" fill="{color}" opacity="0.5"/><rect x="40" y="20" width="20" height="20" rx="4" fill="{color}"/><circle cx="50" cy="30" r="6" fill="#fff"/><rect x="25" y="35" width="10" height="25" rx="2" fill="{color}" opacity="0.8"/><rect x="65" y="35" width="10" height="25" rx="2" fill="{color}" opacity="0.8"/><circle cx="50" cy="55" r="10" fill="none" stroke="#fff" stroke-width="3"/>',
-        
         "thunderbolt": f'<circle cx="50" cy="50" r="30" fill="{color}" opacity="0.3"/><circle cx="50" cy="50" r="15" fill="{color}"/><path d="M50,10 L55,35 L45,35 L50,10" fill="#fff"/><path d="M50,90 L45,65 L55,65 L50,90" fill="#fff"/><path d="M10,50 L35,45 L35,55 L10,50" fill="#fff"/><path d="M90,50 L65,55 L65,45 L90,50" fill="#fff"/><circle cx="50" cy="50" r="5" fill="#fff"/>',
-        
         "beam": f'<path d="M20,80 L80,80 L70,60 L30,60 Z" fill="{color}" opacity="0.4"/><rect x="45" y="30" width="10" height="30" fill="{color}"/><path d="M45,30 L50,5 L55,30 Z" fill="#fff"/><path d="M50,5 L20,0 L50,5 L80,0" stroke="{color}" stroke-width="2" opacity="0.6"/>',
-        
         "firewheel": f'<circle cx="50" cy="50" r="40" fill="none" stroke="{color}" stroke-width="4" opacity="0.5" stroke-dasharray="10,5"/><path d="M50,85 Q30,65 35,45 Q50,10 65,45 Q70,65 50,85 Z" fill="{color}" opacity="0.8"/><path d="M50,75 Q40,60 45,45 Q50,25 55,45 Q60,60 50,75 Z" fill="#fff" opacity="0.6"/>',
-        
         "aeroblast": f'<rect x="25" y="65" width="50" height="20" rx="4" fill="{color}" opacity="0.4"/><rect x="35" y="35" width="30" height="35" fill="{color}"/><circle cx="50" cy="35" r="15" fill="none" stroke="{color}" stroke-width="5"/><circle cx="50" cy="35" r="5" fill="#fff"/><rect x="65" y="55" width="15" height="15" rx="8" fill="#fff" opacity="0.8"/>',
-        
         "vortex": f'<circle cx="50" cy="50" r="45" fill="none" stroke="{color}" stroke-width="2" opacity="0.2"/><path d="M50,50 m-35,0 a35,35 0 1,0 70,0 a35,35 0 1,0 -70,0" fill="none" stroke="{color}" stroke-width="6" opacity="0.6" stroke-dasharray="60, 160"/><circle cx="50" cy="50" r="15" fill="#000" stroke="#fff" stroke-width="3"/><path d="M50,50 L85,15" stroke="#fff" stroke-width="3" stroke-linecap="round"/>'
     }
     return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">{paths.get(icon_name, "")}</svg>'
@@ -141,7 +132,6 @@ def get_tactic_note(enemy, turret, score):
 def solve_loadout(e1, e2, e3):
     best_score = -9999
     best_loadout = None
-    # The magic one-liner that finds the perfect no-repeat combination
     for p in itertools.permutations(TURRETS):
         w1, w2, w3 = p[0:3], p[3:6], p[6:9]
         score = sum(get_score(e1, t) for t in w1) + sum(get_score(e2, t) for t in w2) + sum(get_score(e3, t) for t in w3)
@@ -203,37 +193,30 @@ waves_data = [(e1, loadout[0]), (e2, loadout[1]), (e3, loadout[2])]
 
 st.divider()
 
-# --- MOVED: Card Requirements Check (Top View) ---
-# Expanded by default for quick checking
+# --- CARD REQUIREMENTS (Top View) ---
 with st.expander("📝 Check Your Card Setup", expanded=True):
     dc1, dc2, dc3 = st.columns(3)
     for i, col in enumerate([dc1, dc2, dc3]):
         with col:
             st.caption(f"Wave {i+1}")
             for t in loadout[i]:
-                # Splits name to remove (Info) and shows just the required card
                 st.markdown(f"- {t.split('(')[0]}: `{TURRET_DATA[t]['card']}`")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# --- 5. THE 3x3 GRID RENDERER ---
-# Loop through each wave (rows)
+# --- GRID RENDERER ---
 for i, (enemy_name, turrets) in enumerate(waves_data):
-    # Row Header
     st.markdown(f'<div class="wave-row-header">Wave {i+1} vs {enemy_name.split("(")[0]}</div>', unsafe_allow_html=True)
     
-    # 3 Columns for Turrets
     cols = st.columns(3)
     for j, t_name in enumerate(turrets):
         data = TURRET_DATA[t_name]
         score = get_score(enemy_name, t_name)
         note = get_tactic_note(enemy_name, t_name, score)
         
-        # Generate SVG
         svg = get_svg_content(data['icon'], data['color'])
         b64_svg = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
         
-        # Color Coding
         score_color = "#2ecc71" if score >= 90 else "#f1c40f" if score >= 50 else "#e74c3c"
         border_color = score_color
 
@@ -251,5 +234,4 @@ for i, (enemy_name, turrets) in enumerate(waves_data):
                 </div>
             </div>
             """, unsafe_allow_html=True)
-""", unsafe_allow_html=True)
-            
+    
