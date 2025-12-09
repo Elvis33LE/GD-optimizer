@@ -30,48 +30,76 @@ ENEMIES = [
 ]
 
 # Scoring Logic
+# UPDATED: Heavy penalties for using AoE turrets vs Bosses
 SCORES = {
+    # --- STARCORE (Heals on Debuff) ---
     ("Pristine Starcore (Healer)", "Guardian (Mecha)"): 100,
     ("Pristine Starcore (Healer)", "Teslacoil"): 95,
     ("Pristine Starcore (Healer)", "Sky Guard"): 90,
     ("Pristine Starcore (Healer)", "Firewheel"): 80,
     ("Pristine Starcore (Healer)", "Aeroblast"): 75,
-    ("Pristine Starcore (Healer)", "Thunderbolt"): -100,
-    ("Pristine Starcore (Healer)", "Disruption Drone"): -100,
-    ("Pristine Starcore (Healer)", "Beam Turret"): -100,
+    ("Pristine Starcore (Healer)", "Thunderbolt"): -100, # Stun = Heal
+    ("Pristine Starcore (Healer)", "Disruption Drone"): -100, # Slow = Heal
+    ("Pristine Starcore (Healer)", "Beam Turret"): -100, # Vuln = Heal
     ("Pristine Starcore (Healer)", "Gravity Vortex"): -50,
-    ("Alien Scout Drone (Invisible)", "Firewheel"): 100,
+
+    # --- SCOUT DRONE (Invisible) ---
+    ("Alien Scout Drone (Invisible)", "Firewheel"): 100, # MVP
     ("Alien Scout Drone (Invisible)", "Aeroblast"): 95,
     ("Alien Scout Drone (Invisible)", "Guardian (Mecha)"): 85,
     ("Alien Scout Drone (Invisible)", "Beam Turret"): 80,
+
+    # --- CROWN GUARD (Sniper) ---
     ("Stellar Crown Guard (Sniper)", "Sky Guard"): 100,
     ("Stellar Crown Guard (Sniper)", "Guardian (Mecha)"): 90,
     ("Stellar Crown Guard (Sniper)", "Disruption Drone"): 85,
+    ("Stellar Crown Guard (Sniper)", "Beam Turret"): 70,
+
+    # --- METEORITE (Swarm) ---
     ("Meteorite (Swarm)", "Firewheel"): 100,
     ("Meteorite (Swarm)", "Aeroblast"): 95,
     ("Meteorite (Swarm)", "Thunderbolt"): 90,
+    ("Meteorite (Swarm)", "Teslacoil"): 85,
+    ("Meteorite (Swarm)", "Gravity Vortex"): 80,
+    ("Meteorite (Swarm)", "Guardian (Mecha)"): 70,
+    ("Meteorite (Swarm)", "Sky Guard"): 40, # Bad vs Swarm (Single Target)
+    ("Meteorite (Swarm)", "Beam Turret"): 40, # Bad vs Swarm
+
+    # --- COSMIC CUBE (Tank) ---
     ("Cosmic Cube (Tank)", "Guardian (Mecha)"): 100,
     ("Cosmic Cube (Tank)", "Gravity Vortex"): 100,
     ("Cosmic Cube (Tank)", "Sky Guard"): 95,
-    ("Cosmic Cube (Tank)", "Beam Turret"): 10,
-    ("Cosmic Cube (Tank)", "Teslacoil"): 10,
+    ("Cosmic Cube (Tank)", "Aeroblast"): 80,
+    ("Cosmic Cube (Tank)", "Beam Turret"): 10, # Resisted
+    ("Cosmic Cube (Tank)", "Teslacoil"): 10, # Resisted
+
+    # --- ROCK WALKER (Runner) ---
     ("Rock Walker (Runner)", "Gravity Vortex"): 100,
     ("Rock Walker (Runner)", "Teslacoil"): 100,
     ("Rock Walker (Runner)", "Thunderbolt"): 90,
-    ("Elite Rift Colossus (Shield Boss)", "Guardian (Mecha)"): 100,
-    ("Elite Rift Colossus (Shield Boss)", "Beam Turret"): 95,
-    ("Elite Rift Colossus (Shield Boss)", "Sky Guard"): 85,
-    ("Elite Rift Colossus (Shield Boss)", "Disruption Drone"): 30,
-    ("Elite Alien Golem (Split Boss)", "Aeroblast"): 100,
+    ("Rock Walker (Runner)", "Guardian (Mecha)"): 80,
+
+    # --- BOSS: COLOSSUS (Shield) ---
+    ("Elite Rift Colossus (Shield Boss)", "Guardian (Mecha)"): 100, # Best Shield Breaker
+    ("Elite Rift Colossus (Shield Boss)", "Beam Turret"): 95, # Applies Vulnerable
+    ("Elite Rift Colossus (Shield Boss)", "Aeroblast"): 80, # Physical Mines (Okay)
+    ("Elite Rift Colossus (Shield Boss)", "Sky Guard"): 70, # Good Impact
+    ("Elite Rift Colossus (Shield Boss)", "Firewheel"): -50, # USELESS vs Shield
+    ("Elite Rift Colossus (Shield Boss)", "Gravity Vortex"): -50, # USELESS vs Boss
+    ("Elite Rift Colossus (Shield Boss)", "Teslacoil"): -20, # Low Single Target
+    ("Elite Rift Colossus (Shield Boss)", "Disruption Drone"): 30, # Resisted
+
+    # --- BOSS: GOLEM (Splitter) ---
+    ("Elite Alien Golem (Split Boss)", "Aeroblast"): 100, # MVP: Spawn Camp
     ("Elite Alien Golem (Split Boss)", "Guardian (Mecha)"): 90,
     ("Elite Alien Golem (Split Boss)", "Beam Turret"): 85,
-    ("Elite Alien Golem (Split Boss)", "Gravity Vortex"): 80,
-    ("Elite Alien Golem (Split Boss)", "Teslacoil"): 10,
+    ("Elite Alien Golem (Split Boss)", "Gravity Vortex"): 80, # Catch splits
+    ("Elite Alien Golem (Split Boss)", "Firewheel"): -20, # Bad vs Boss
+    ("Elite Alien Golem (Split Boss)", "Teslacoil"): 10, # Resisted
 }
 
-# --- 2. REFINED HIGH-DETAIL SVGS ---
+# --- 2. ASSETS ---
 def get_svg_content(icon_name, color):
-    # These are much more detailed, layered SVGs for a better look.
     paths = {
         "tesla": f'<circle cx="50" cy="85" r="15" fill="{color}" opacity="0.3"/><ellipse cx="50" cy="70" rx="25" ry="10" fill="none" stroke="{color}" stroke-width="4" opacity="0.6"/><ellipse cx="50" cy="55" rx="20" ry="8" fill="none" stroke="{color}" stroke-width="4" opacity="0.8"/><ellipse cx="50" cy="40" rx="15" ry="6" fill="none" stroke="{color}" stroke-width="4"/><circle cx="50" cy="25" r="8" fill="#fff"/><path d="M50,25 L30,5 M50,25 L70,5" stroke="#fff" stroke-width="2"/>',
         
@@ -99,6 +127,7 @@ def get_score(enemy, turret):
 
 def get_tactic_note(enemy, turret, score):
     if score == -100: return "⚠️ AVOID: Heals/Immune"
+    if score <= -20: return "⚠️ Weak vs this enemy"
     if "Starcore" in enemy and "Guardian" in turret: return "Phys (No Debuff)"
     if "Invisible" in enemy and "Firewheel" in turret: return "Auto-Track"
     if "Cube" in enemy and "Vortex" in turret: return "Groups Tanks"
@@ -222,4 +251,5 @@ for i, (enemy_name, turrets) in enumerate(waves_data):
                 </div>
             </div>
             """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
             
