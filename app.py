@@ -31,10 +31,14 @@ ENEMIES = [
 
 # Known Synergies (Check for these pairs in a wave)
 COMBOS = [
-    {"pair": {"Sky Guard", "Gravity Vortex"}, "name": "Collapse"},
-    {"pair": {"Aeroblast", "Firewheel"}, "name": "Drone Summon"},
-    {"pair": {"Disruption Drone", "Thunderbolt"}, "name": "Mag. Storm"},
-    {"pair": {"Railgun", "Gravity Vortex"}, "name": "Vacuum Shot"},
+    {"pair": {"Sky Guard", "Gravity Vortex"}, "name": "Collapse Explosion", "desc": "Missiles create Black Holes"},
+    {"pair": {"Aeroblast", "Firewheel"}, "name": "Firewheel Summon", "desc": "Explosions spawn Drones"},
+    {"pair": {"Aeroblast", "Laser"}, "name": "Ripping Lasers", "desc": "Shells fire lasers"}, # Laser not in deck, but kept for ref
+    {"pair": {"Disruption Drone", "Thunderbolt"}, "name": "Magnetic Storm", "desc": "Slowed enemies get Zapped"},
+    {"pair": {"Railgun", "Gravity Vortex"}, "name": "Vacuum Shot", "desc": "Shots pull enemies"},
+    # Guardian Synergies
+    {"pair": {"Guardian (Mecha)", "Disruption Drone"}, "name": "Disruption Fire", "desc": "Guardian slows enemies"},
+    {"pair": {"Guardian (Mecha)", "Teslacoil"}, "name": "Electro-Shot", "desc": "Guardian bullets chain"},
 ]
 
 SCORES = {
@@ -120,15 +124,25 @@ def get_tactic_note(enemy, turret, score):
     return "Fill"
 
 def check_combos(wave_turrets):
-    combo_names = []
+    # Returns a set of turret names that are part of a combo in this wave
+    active_combos = []
     combo_turrets = set()
+    
+    # Convert wave tuple to set for checking
+    wave_set = set(t.split('(')[0].strip() for t in wave_turrets)
+    
     for c in COMBOS:
-        current_simple = {t.split('(')[0].strip(): t for t in wave_turrets}
-        if c["pair"].issubset(set(current_simple.keys())):
-            combo_names.append(c["name"])
+        # Check if the pair exists in the current wave
+        # We need to map full names to simple names for checking
+        current_simple_names = {t.split('(')[0].strip(): t for t in wave_turrets}
+        
+        if c["pair"].issubset(set(current_simple_names.keys())):
+            active_combos.append(c["name"])
+            # Add the full turret names to the highlight set
             for simple in c["pair"]:
-                combo_turrets.add(current_simple[simple])
-    return combo_names, combo_turrets
+                combo_turrets.add(current_simple_names[simple])
+                
+    return active_combos, combo_turrets
 
 def solve_loadout(e1, e2, e3):
     best_score = -9999
