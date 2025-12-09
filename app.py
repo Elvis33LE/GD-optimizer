@@ -2,7 +2,8 @@ import streamlit as st
 import itertools
 import base64
 
-# --- 1. CONFIGURATION ---
+# --- 1. CONFIGURATION: DATA & ASSETS ---
+
 TURRET_DATA = {
     "Guardian (Mecha)":   {"type": "🦾 Phys", "card": "Splitting Bullet", "color": "#00d2d3", "icon": "guardian"},
     "Teslacoil":          {"type": "⚡ Elec", "card": "Chain Surge (No Stun)", "color": "#a55eea", "icon": "tesla"},
@@ -28,14 +29,16 @@ ENEMIES = [
     "Elite Alien Golem (Split Boss)"
 ]
 
+# Known Synergies (Check for these pairs in a wave)
 COMBOS = [
     {"pair": {"Sky Guard", "Gravity Vortex"}, "name": "Collapse"},
     {"pair": {"Aeroblast", "Firewheel"}, "name": "Drone Summon"},
     {"pair": {"Disruption Drone", "Thunderbolt"}, "name": "Mag. Storm"},
-    {"pair": {"Railgun", "Gravity Vortex"}, "name": "Vacuum"},
+    {"pair": {"Railgun", "Gravity Vortex"}, "name": "Vacuum Shot"},
 ]
 
 SCORES = {
+    # --- STARCORE (Heals on Debuff) ---
     ("Pristine Starcore (Healer)", "Guardian (Mecha)"): 100,
     ("Pristine Starcore (Healer)", "Teslacoil"): 95,
     ("Pristine Starcore (Healer)", "Sky Guard"): 90,
@@ -45,28 +48,42 @@ SCORES = {
     ("Pristine Starcore (Healer)", "Disruption Drone"): -100,
     ("Pristine Starcore (Healer)", "Beam Turret"): -100,
     ("Pristine Starcore (Healer)", "Gravity Vortex"): -50,
+
+    # --- SCOUT DRONE (Invisible) ---
     ("Alien Scout Drone (Invisible)", "Firewheel"): 100,
     ("Alien Scout Drone (Invisible)", "Aeroblast"): 95,
     ("Alien Scout Drone (Invisible)", "Guardian (Mecha)"): 85,
     ("Alien Scout Drone (Invisible)", "Beam Turret"): 80,
+
+    # --- CROWN GUARD (Sniper) ---
     ("Stellar Crown Guard (Sniper)", "Sky Guard"): 100,
     ("Stellar Crown Guard (Sniper)", "Guardian (Mecha)"): 90,
     ("Stellar Crown Guard (Sniper)", "Disruption Drone"): 85,
+
+    # --- METEORITE (Swarm) ---
     ("Meteorite (Swarm)", "Firewheel"): 100,
     ("Meteorite (Swarm)", "Aeroblast"): 95,
     ("Meteorite (Swarm)", "Thunderbolt"): 90,
+
+    # --- COSMIC CUBE (Tank) ---
     ("Cosmic Cube (Tank)", "Guardian (Mecha)"): 100,
     ("Cosmic Cube (Tank)", "Gravity Vortex"): 100,
     ("Cosmic Cube (Tank)", "Sky Guard"): 95,
     ("Cosmic Cube (Tank)", "Beam Turret"): 10,
     ("Cosmic Cube (Tank)", "Teslacoil"): 10,
+
+    # --- ROCK WALKER (Runner) ---
     ("Rock Walker (Runner)", "Gravity Vortex"): 100,
     ("Rock Walker (Runner)", "Teslacoil"): 100,
     ("Rock Walker (Runner)", "Thunderbolt"): 90,
+
+    # --- BOSS: COLOSSUS (Shield) ---
     ("Elite Rift Colossus (Shield Boss)", "Guardian (Mecha)"): 100,
     ("Elite Rift Colossus (Shield Boss)", "Beam Turret"): 95,
     ("Elite Rift Colossus (Shield Boss)", "Sky Guard"): 85,
     ("Elite Rift Colossus (Shield Boss)", "Disruption Drone"): 30,
+
+    # --- BOSS: GOLEM (Splitter) ---
     ("Elite Alien Golem (Split Boss)", "Aeroblast"): 100,
     ("Elite Alien Golem (Split Boss)", "Guardian (Mecha)"): 90,
     ("Elite Alien Golem (Split Boss)", "Beam Turret"): 85,
@@ -74,7 +91,7 @@ SCORES = {
     ("Elite Alien Golem (Split Boss)", "Teslacoil"): 10,
 }
 
-# --- 2. ASSETS ---
+# --- 2. REFINED SVG ICONS (High Detail) ---
 def get_svg_content(icon_name, color):
     paths = {
         "tesla": f'<circle cx="50" cy="85" r="15" fill="{color}" opacity="0.3"/><path d="M50,70 L30,30 M50,70 L70,30" stroke="{color}" stroke-width="4"/><circle cx="50" cy="25" r="8" fill="#fff" filter="drop-shadow(0 0 4px {color})"/>',
@@ -124,84 +141,69 @@ def solve_loadout(e1, e2, e3):
             best_loadout = (w1, w2, w3)
     return best_loadout
 
-# --- 4. LAYOUT ---
-st.set_page_config(page_title="Vanguard 2.0", layout="wide", initial_sidebar_state="collapsed")
+# --- 4. APP LAYOUT ---
+st.set_page_config(page_title="Vanguard 2.0", layout="wide")
 
 st.markdown("""
 <style>
-    .main .block-container { padding-top: 1rem; padding-bottom: 5rem; padding-left: 0.5rem; padding-right: 0.5rem; }
-    h1 { font-size: 1.1rem !important; color: #888; text-transform: uppercase; margin-bottom: 0px; text-align: center; }
+    .main .block-container { padding-top: 1rem; padding-bottom: 2rem; }
+    h1 { font-size: 1.1rem !important; color: #888; margin-bottom: 0px; text-transform: uppercase; letter-spacing: 2px;}
     
-    /* THE FIX: CSS GRID FORCES HORIZONTAL LAYOUT */
-    .wave-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr); /* Exactly 3 columns of equal width */
-        gap: 6px; /* Gap between cards */
-        margin-bottom: 15px;
-        width: 100%;
-    }
-
-    /* CARD STYLE */
+    /* Card Styles */
     .turret-card {
-        background-color: #1a1a1a;
+        background-color: #141414;
         border: 1px solid #333;
-        border-radius: 4px;
-        padding: 4px;
+        border-radius: 6px;
+        padding: 8px;
         text-align: center;
-        height: 100px; /* Fixed compact height */
+        height: 160px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         position: relative;
-        min-width: 0; /* Prevents overflow */
     }
     
+    /* Combo Highlight */
     .combo-active {
         border: 1px solid #f1c40f !important;
-        background: radial-gradient(circle, rgba(241,196,15,0.1) 0%, rgba(26,26,26,1) 80%);
+        box-shadow: 0 0 8px rgba(241, 196, 15, 0.2);
+        background: radial-gradient(circle, rgba(241,196,15,0.05) 0%, rgba(20,20,20,1) 70%);
+    }
+    
+    .turret-icon { width: 50px; height: 50px; margin-bottom: 6px; }
+    .turret-name { font-size: 0.75rem; font-weight: 700; color: #eee; line-height: 1.1; }
+    .turret-meta { font-size: 0.65rem; color: #aaa; margin-bottom: 4px; }
+    .turret-score { font-size: 0.7rem; font-weight: bold; }
+    .tactic-note { font-size: 0.6rem; color: #aaa; font-style: italic; }
+    
+    /* Combo Badge */
+    .combo-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background-color: #f1c40f;
+        color: #000;
+        font-size: 0.5rem;
+        font-weight: bold;
+        padding: 2px 4px;
+        border-radius: 3px;
+        z-index: 10;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.5);
     }
 
-    .turret-icon { width: 30px; height: 30px; margin-bottom: 3px; }
-    
-    /* Text truncating to prevent breaking layout */
-    .turret-name { 
-        font-size: 0.6rem; 
-        font-weight: 700; 
-        color: #eee; 
-        line-height: 1; 
-        margin-bottom: 2px; 
-        white-space: nowrap; 
-        overflow: hidden; 
-        text-overflow: ellipsis; 
-        width: 100%; 
-    }
-    .turret-meta { font-size: 0.5rem; color: #aaa; margin-bottom: 2px;}
-    .turret-score { font-size: 0.6rem; font-weight: bold; }
-    .tactic-note { font-size: 0.5rem; color: #aaa; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;}
-    
-    .wave-label {
-        font-size: 0.75rem;
+    .wave-header {
+        font-size: 0.85rem;
         font-weight: bold;
         color: #fff;
-        background: #333;
-        padding: 3px 8px;
-        border-radius: 4px;
-        display: block;
-        margin-bottom: 4px;
-        margin-top: 10px;
+        margin-top: 15px;
+        margin-bottom: 5px;
+        padding-left: 8px;
+        border-left: 3px solid #555;
+        display: flex;
+        justify-content: space-between;
     }
-    
-    .combo-tag {
-        font-size: 0.6rem;
-        color: #000;
-        background: #f1c40f;
-        padding: 1px 4px;
-        border-radius: 2px;
-        margin-left: 8px;
-        font-weight: bold;
-        display: inline-block;
-    }
+    .combo-text { color: #f1c40f; font-size: 0.7rem; margin-left: 10px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -213,49 +215,50 @@ with c1: e1 = st.selectbox("Wave 1", ENEMIES, index=2)
 with c2: e2 = st.selectbox("Wave 2", ENEMIES, index=6)
 with c3: e3 = st.selectbox("Wave 3", ENEMIES, index=1)
 
-# Logic
+# Calculate
 loadout = solve_loadout(e1, e2, e3)
 waves_data = [(e1, loadout[0]), (e2, loadout[1]), (e3, loadout[2])]
 
 st.divider()
 
-# --- THE HTML GRID RENDERER ---
-# This builds pure HTML blocks to guarantee 3-column layout on mobile
+# --- GRID RENDER ---
 for i, (enemy_name, turrets) in enumerate(waves_data):
-    # Combo Check
-    c_names, c_turrets = check_combos(turrets)
-    combo_html = f'<span class="combo-tag">⚡ {", ".join(c_names)}</span>' if c_names else ""
+    # Check for combos in this wave
+    combo_names, combo_turrets = check_combos(turrets)
     
-    # Header
-    st.markdown(f'<div class="wave-label">WAVE {i+1}: vs {enemy_name.split("(")[0]} {combo_html}</div>', unsafe_allow_html=True)
+    # Header with Combo text if active
+    combo_html = f'<span class="combo-text">⚡ {", ".join(combo_names)}</span>' if combo_names else ""
+    st.markdown(f'<div class="wave-header"><span>WAVE {i+1} vs {enemy_name.split("(")[0]}</span>{combo_html}</div>', unsafe_allow_html=True)
     
-    # BUILD GRID HTML
-    cards_html = ""
-    for t_name in turrets:
+    cols = st.columns(3)
+    for j, t_name in enumerate(turrets):
         data = TURRET_DATA[t_name]
         score = get_score(enemy_name, t_name)
         note = get_tactic_note(enemy_name, t_name, score)
         
+        # SVG
         svg = get_svg_content(data['icon'], data['color'])
         b64_svg = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
         
+        # Styles
         score_color = "#2ecc71" if score >= 90 else "#e74c3c" if score < 0 else "#f1c40f"
-        css_class = "turret-card combo-active" if t_name in c_turrets else "turret-card"
+        is_combo = t_name in combo_turrets
+        card_class = "turret-card combo-active" if is_combo else "turret-card"
+        badge_html = '<div class="combo-badge">LINK</div>' if is_combo else ""
         
-        cards_html += f"""
-        <div class="{css_class}">
-            <img src="data:image/svg+xml;base64,{b64_svg}" class="turret-icon">
-            <div class="turret-name">{t_name.split('(')[0]}</div>
-            <div class="turret-meta">{data['type']}</div>
-            <div class="turret-score" style="color:{score_color}">{score}</div>
-            <div class="tactic-note">{note}</div>
-        </div>
-        """
-    
-    # RENDER THE WHOLE ROW AT ONCE
-    st.markdown(f'<div class="wave-grid">{cards_html}</div>', unsafe_allow_html=True)
+        with cols[j]:
+            st.markdown(f"""
+            <div class="{card_class}">
+                {badge_html}
+                <img src="data:image/svg+xml;base64,{b64_svg}" class="turret-icon">
+                <div class="turret-name">{t_name.split('(')[0]}</div>
+                <div class="turret-meta">{data['type']}</div>
+                <div class="turret-score" style="color:{score_color}">Score: {score}</div>
+                <div class="tactic-note">{note}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
-# Footer
+# Footer Requirements
 st.markdown("<br>", unsafe_allow_html=True)
 with st.expander("📝 Card Requirements", expanded=False):
     dc1, dc2, dc3 = st.columns(3)
@@ -264,4 +267,4 @@ with st.expander("📝 Card Requirements", expanded=False):
             st.caption(f"Wave {i+1}")
             for t in loadout[i]:
                 st.markdown(f"- `{TURRET_DATA[t]['card']}`")
-        
+            
