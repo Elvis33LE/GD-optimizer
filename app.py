@@ -3,6 +3,7 @@ import json
 import os
 import textwrap
 from itertools import combinations
+import base64
 
 # --- 1. SETUP & CONFIGURATION ---
 st.set_page_config(page_title="Vanguard 2.0: Strategy Engine", layout="wide")
@@ -160,7 +161,6 @@ def get_active_chains_text(tower_id):
     if tower_id not in st.session_state.card_setup: return ""
 
     setup = st.session_state.card_setup[tower_id]
-    # Filter out None values before creating the set
     selected_names = set([c for c in (setup.get("tier_1", []) + setup.get("tier_2", [])) if c])
 
     chains = {}
@@ -349,10 +349,25 @@ if st.session_state.page == 'setup':
     st.title("⚙️ Vanguard Mission Control")
     st.caption(f"Configuring: {defaults.get('weekly_mode_name', 'Custom Week')}")
 
-    c_save, _ = st.columns([1, 4])
+    # --- Top Controls ---
+    c_save, c_load, _ = st.columns([1, 1, 3])
     with c_save:
-        if st.button("💾 Save Setup for Future", type="secondary"):
+        if st.button("💾 Save Setup", type="secondary", use_container_width=True):
             save_user_config()
+    with c_load:
+        if st.button("🔄 Load Weekly Defaults", type="primary", use_container_width=True):
+            # Reset logic: Clear user_config and load from defaults
+            if os.path.exists(USER_CONFIG_FILE):
+                os.remove(USER_CONFIG_FILE)  # Optional: Remove the local save to avoid conflicts
+
+            # Force session state update
+            defs = load_defaults()
+            valid_towers = [t for t in defs.get("available_towers", []) if t in towers_db]
+            st.session_state.user_towers = valid_towers
+            st.session_state.weekly_enemy_pool = defs.get("weekly_enemy_pool", [])
+            st.session_state.card_setup = defs.get("weekly_card_setup", {})
+            st.toast("Reverted to Weekly Official Defaults!", icon="✅")
+            st.rerun()
 
     col1, col2 = st.columns(2)
     with col1:
@@ -402,10 +417,10 @@ if st.session_state.page == 'setup':
             st.session_state.card_setup[t_id] = {"tier_1": [], "tier_2": []}
 
         with st.expander(f"🃏 {t_data['name']} Configuration", expanded=False):
-            # Combine Tier 1 and 2 options into a single pool to allow free selection
-            t1_list = [c['name'] for c in cards_db.get(t_id, {}).get(1, [])]
-            t2_list = [c['name'] for c in cards_db.get(t_id, {}).get(2, [])]
-            all_opts = sorted(list(set(t1_list + t2_list)))  # Unique list of all available cards
+            t1_opts = [c['name'] for c in cards_db.get(t_id, {}).get(1, [])]
+            t2_opts = [c['name'] for c in cards_db.get(t_id, {}).get(2, [])]
+            # Combined list for flexible selection
+            all_opts = sorted(list(set(t1_opts + t2_opts)))
 
             st.markdown("**Tier 1 Slots**")
             cols_t1 = st.columns(4)
@@ -513,63 +528,4 @@ elif st.session_state.page == 'main':
                             for c in synergy_db[key]:
                                 active_combos.append(c)
 
-                    if active_combos:
-                        st.markdown("**🔗 Potential Combos:**")
-                        for c in active_combos:
-                            rating = c.get('score', 5)
-                            desc = c['description']
-                            tags = get_combo_tags(desc, c['name'])
-
-                            badges = []
-                            if any(t in enemy.get('weakness_types', []) for t in tags): badges.append(
-                                "⚡ Super Effective")
-                            if any(t in enemy.get('resistance_types', []) for t in tags): badges.append("🛡️ Resisted")
-
-                            setup_conditions = analyze_user_setup(st.session_state.card_setup)
-                            if "burn" in desc.lower() and "Burn" in setup_conditions: badges.append(
-                                "🔥 Guaranteed Trigger")
-                            if "slow" in desc.lower() and "Slow" in setup_conditions: badges.append(
-                                "❄️ Guaranteed Trigger")
-
-                            badge_str = " ".join([f"`{b}`" for b in badges])
-                            color = "green" if rating >= 8 else "orange"
-
-                            st.markdown(f"- :{color}[**{c['name']}**] ({rating}/10) {badge_str}")
-                            st.caption(f"└ {desc}")
-                        st.markdown("")
-
-                    t_cols = st.columns(3)
-                    sorted_towers = sorted(wave_towers, key=lambda tid: calculate_single_score(enemy_id, tid)[0],
-                                           reverse=True)
-
-                    for idx, t_id in enumerate(sorted_towers):
-                        with t_cols[idx]:
-                            t_data = towers_db[t_id]
-                            score, note = calculate_single_score(enemy_id, t_id)
-                            color = TYPE_COLORS.get(t_data['type'], "#fff")
-                            icon_svg = get_svg(t_data.get('icon', 'beam'), color)
-                            b64_svg = base64.b64encode(icon_svg.encode('utf-8')).decode("utf-8")
-
-                            active_chains = get_active_chains_text(t_id)
-
-                            html_code = textwrap.dedent(f"""
-                            <div style="background-color: #1e1e1e; border: 1px solid #333; border-radius: 6px; padding: 10px;">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <img src="data:image/svg+xml;base64,{b64_svg}" style="width:40px; height:40px;">
-                                    <div>
-                                        <div style="font-weight:bold; color:#fff; font-size:0.95em;">{t_data['name']}</div>
-                                        <div style="font-size:0.75em; color:{color};">{t_data['type']}</div>
-                                    </div>
-                                    <div style="margin-left:auto; text-align:right;">
-                                        <div style="font-weight:bold; font-size:1.1em; color:#ddd;">{score}</div>
-                                    </div>
-                                </div>
-                                <div style="margin-top:6px;">
-                                    {f'<div style="font-size:0.75em; color:#4ea8de; margin-bottom:2px;">{active_chains}</div>' if active_chains else ''}
-                                    <div style="font-size:0.7em; color:#aaa; line-height:1.2;">{note}</div>
-                                </div>
-                            </div>
-                            """)
-                            st.markdown(html_code, unsafe_allow_html=True)
-
-            st.markdown("<br><br>", unsafe_allow_html=True)
+                    if active_combos
