@@ -187,7 +187,21 @@ def calculate_single_score(enemy_id, tower_id):
     score = 100.0
     notes = []
 
+    # --- 1. SETUP BONUSES (New!) ---
+    # Add points if the tower has active Chains in the setup
+    active_chains_text = get_active_chains_text(tower_id)
+    if active_chains_text:
+        # Give a flat bonus for having an upgraded chain
+        # e.g., "Explosion Chain (II)" adds 15 points
+        chain_count = active_chains_text.count("(")  # Count how many chains are active
+        chain_bonus = chain_count * 15
+        score += chain_bonus
+        # We don't add a note here because the badge shows it
+
+    # --- 2. MATCHUP MULTIPLIERS ---
     active_tags = set(tower.get('damage_tags', []))
+
+    # (Card tag logic...)
     if tower_id in st.session_state.card_setup:
         setup = st.session_state.card_setup[tower_id]
         all_selected_card_names = setup.get("tier_1", []) + setup.get("tier_2", [])
@@ -198,9 +212,10 @@ def calculate_single_score(enemy_id, tower_id):
             if any(x in card_name for x in ["Slow", "Stasis"]): active_tags.add("Slow")
             if any(x in card_name for x in ["Stealth Reveal", "Ignition"]): active_tags.add("Stealth Reveal")
 
-    # Immunities
+    # Immunities (Multipliers apply to the NEW score base)
     enemy_immunities = enemy.get('immunities', [])
     enemy_tags = enemy.get('tags', [])
+
     if "Paralysis" in enemy_immunities and "Paralyze" in active_tags:
         score *= 0.1
         notes.append("⛔ Immune: Paralysis")
@@ -215,38 +230,39 @@ def calculate_single_score(enemy_id, tower_id):
             score *= 1.2
             notes.append("✨ Bypasses Block")
 
-    # Weakness/Resist
+    # Weakness (x1.5)
     is_weak = False
     if tower['type'] in enemy.get('weakness_types', []): is_weak = True
     for tag in active_tags:
         if tag in enemy.get('weakness_types', []): is_weak = True
     if is_weak:
         score *= 1.5
-        notes.append("⚡ Weakness (+50%)")
+        notes.append("⚡ Weakness")
 
+    # Resistance (x0.5)
     is_resist = False
     if tower['type'] in enemy.get('resistance_types', []): is_resist = True
     for tag in active_tags:
         if tag in enemy.get('resistance_types', []): is_resist = True
     if is_resist:
         score *= 0.5
-        notes.append("🛡️ Resist (-50%)")
+        notes.append("🛡️ Resist")
 
-    # Tactics
+    # Tactical Bonuses
     if "Invisible" in enemy_tags or "Stealth" in enemy_tags:
         if "Stealth Reveal" in active_tags:
-            score *= 1.5
-            notes.append("👁️ Reveals Stealth")
+            score += 40  # Flat bonus for utility
+            notes.append("👁️ Reveals")
         elif "Area" in active_tags:
-            score *= 1.1
-            notes.append("💥 AoE Hit")
+            score += 10
+            notes.append("💥 AoE")
         else:
             score *= 0.6
             notes.append("⚠️ Can't see")
 
     if "Swarm" in enemy_tags or "Splitter" in enemy_tags:
         if "Area" in active_tags or "Chain" in tower.get('role', ''):
-            score *= 1.3
+            score *= 1.2
             notes.append("🌊 Anti-Swarm")
         elif "Single Target" in tower.get('role', ''):
             score *= 0.8
