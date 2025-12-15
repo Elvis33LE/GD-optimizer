@@ -95,7 +95,6 @@ user_conf = load_user_config()
 if 'page' not in st.session_state:
     st.session_state.page = 'setup'
 
-# 1. User Towers
 if 'user_towers' not in st.session_state:
     if user_conf and 'user_towers' in user_conf:
         st.session_state.user_towers = user_conf['user_towers']
@@ -103,7 +102,6 @@ if 'user_towers' not in st.session_state:
         default_ids = defaults.get("available_towers", list(towers_db.keys())[:9])
         st.session_state.user_towers = [tid for tid in default_ids if tid in towers_db]
 
-# 2. Enemy Pool
 if 'weekly_enemy_pool' not in st.session_state:
     if user_conf and 'weekly_enemy_pool' in user_conf:
         st.session_state.weekly_enemy_pool = user_conf['weekly_enemy_pool']
@@ -111,14 +109,12 @@ if 'weekly_enemy_pool' not in st.session_state:
         default_pool = defaults.get("weekly_enemy_pool", list(enemies_db.keys())[:8])
         st.session_state.weekly_enemy_pool = [eid for eid in default_pool if eid in enemies_db]
 
-# 3. Card Setup
 if 'card_setup' not in st.session_state:
     if user_conf and 'card_setup' in user_conf:
         st.session_state.card_setup = user_conf['card_setup']
     else:
         st.session_state.card_setup = defaults.get("weekly_card_setup", {})
 
-# 4. Active Waves
 if 'active_waves' not in st.session_state:
     pool = st.session_state.weekly_enemy_pool
     waves = []
@@ -129,32 +125,26 @@ if 'active_waves' not in st.session_state:
     st.session_state.active_waves = waves
 
 
-# --- 4. SCORING LOGIC HELPERS ---
+# --- 4. SCORING & CHAIN LOGIC ---
 
 def get_combo_tags(description, name):
-    """Infers damage tags from card text for elemental matching."""
     desc = description.lower() + " " + name.lower()
     tags = set()
-
     if any(x in desc for x in ["fire", "flame", "burn", "ignition"]): tags.add("Fire")
     if any(x in desc for x in ["lightning", "shock", "paralyze", "thunder", "electric"]): tags.add("Electric")
     if any(x in desc for x in ["laser", "beam", "energy", "refraction"]): tags.add("Energy")
     if any(x in desc for x in ["physical", "shell", "bullet", "mine", "impact"]): tags.add("Physical")
     if any(x in desc for x in ["force", "black hole", "pull", "teleport", "disruption"]): tags.add("Force-field")
-
     if "vulnerable" in desc: tags.add("Vulnerable")
     if "slow" in desc: tags.add("Slow")
-
     return tags
 
 
 def analyze_user_setup(user_setup):
-    """Scans the user's T1/T2 setup to see what Status Effects are GUARANTEED."""
     active_conditions = set()
     for tower_id, config in user_setup.items():
         all_cards = config.get("tier_1", []) + config.get("tier_2", [])
         all_text = " ".join([str(c).lower() for c in all_cards if c])
-
         if any(x in all_text for x in ["ignition", "burn", "flame"]): active_conditions.add("Burn")
         if any(x in all_text for x in ["paraly", "shock"]): active_conditions.add("Paralyze")
         if any(x in all_text for x in ["slow", "stasis", "matrix"]): active_conditions.add("Slow")
@@ -162,33 +152,55 @@ def analyze_user_setup(user_setup):
     return active_conditions
 
 
+def get_active_chains_text(tower_id):
+    """Identifies active chains based on selected cards."""
+    if tower_id not in st.session_state.card_setup: return ""
+
+    setup = st.session_state.card_setup[tower_id]
+    selected_names = set(setup.get("tier_1", []) + setup.get("tier_2", []))
+
+    chains = {}  # "Chain Name" -> Max Step
+
+    # Iterate through all available cards for this tower to find what matches selection
+    for tier in [1, 2]:
+        for card in cards_db.get(tower_id, {}).get(tier, []):
+            if card['name'] in selected_names and 'chain_group' in card:
+                group = card['chain_group']
+                step = card['chain_step']
+                # Keep highest step found
+                if group not in chains or step > chains[group]:
+                    chains[group] = step
+
+    if not chains: return ""
+
+    parts = []
+    for group, step in chains.items():
+        roman = "I" * step if step < 4 else str(step)
+        parts.append(f"{group} ({roman})")
+
+    return "⛓️ " + ", ".join(parts)
+
+
 def calculate_single_score(enemy_id, tower_id):
-    """Calculates Base Effectiveness (Level 1 Multipliers) considering Setup Cards."""
     enemy = enemies_db[enemy_id]
     tower = towers_db[tower_id]
-
     score = 100.0
     notes = []
 
-    # 1. Determine Effective Tags (Base Tags + Card Tags)
     active_tags = set(tower.get('damage_tags', []))
-
     if tower_id in st.session_state.card_setup:
         setup = st.session_state.card_setup[tower_id]
         all_selected_card_names = setup.get("tier_1", []) + setup.get("tier_2", [])
-
         for card_name in all_selected_card_names:
             if not card_name: continue
-            # Infer tags from card names
             if any(x in card_name for x in ["Ignition", "Burning", "Flame"]): active_tags.add("Burn")
             if any(x in card_name for x in ["Paralysis", "Paralyze"]): active_tags.add("Paralyze")
             if any(x in card_name for x in ["Slow", "Stasis"]): active_tags.add("Slow")
             if any(x in card_name for x in ["Stealth Reveal", "Ignition"]): active_tags.add("Stealth Reveal")
 
-    # A. Hard Counters (Immunities)
+    # Immunities
     enemy_immunities = enemy.get('immunities', [])
     enemy_tags = enemy.get('tags', [])
-
     if "Paralysis" in enemy_immunities and "Paralyze" in active_tags:
         score *= 0.1
         notes.append("⛔ Immune: Paralysis")
@@ -203,12 +215,11 @@ def calculate_single_score(enemy_id, tower_id):
             score *= 1.2
             notes.append("✨ Bypasses Block")
 
-    # B. Weakness & Resistance
+    # Weakness/Resist
     is_weak = False
     if tower['type'] in enemy.get('weakness_types', []): is_weak = True
     for tag in active_tags:
         if tag in enemy.get('weakness_types', []): is_weak = True
-
     if is_weak:
         score *= 1.5
         notes.append("⚡ Weakness (+50%)")
@@ -217,12 +228,11 @@ def calculate_single_score(enemy_id, tower_id):
     if tower['type'] in enemy.get('resistance_types', []): is_resist = True
     for tag in active_tags:
         if tag in enemy.get('resistance_types', []): is_resist = True
-
     if is_resist:
         score *= 0.5
         notes.append("🛡️ Resist (-50%)")
 
-    # C. Tactical Tags
+    # Tactics
     if "Invisible" in enemy_tags or "Stealth" in enemy_tags:
         if "Stealth Reveal" in active_tags:
             score *= 1.5
@@ -249,10 +259,7 @@ def solve_optimal_loadout(wave_enemies, inventory_towers):
     if len(inventory_towers) < 9:
         return None, "Error: You need at least 9 towers in inventory to fill 3 waves!"
 
-    # 1. Analyze Player's Setup
     setup_conditions = analyze_user_setup(st.session_state.card_setup)
-
-    # 2. Pre-calculate Base Tower Scores
     scores_matrix = []
     for enemy_id in wave_enemies:
         wave_scores = {}
@@ -261,62 +268,42 @@ def solve_optimal_loadout(wave_enemies, inventory_towers):
             wave_scores[t_id] = s
         scores_matrix.append(wave_scores)
 
-    # 3. Identify Top Candidates
     tower_utility = {}
     for t_id in inventory_towers:
         tower_utility[t_id] = sum(scores_matrix[w][t_id] for w in range(3))
-
     top_9 = sorted(tower_utility.keys(), key=lambda x: tower_utility[x], reverse=True)[:9]
 
     best_total = -float('inf')
     best_allocation = None
 
-    # 4. Combinatorial Optimization with DEEP SYNERGY CHECK
     for w1_set in combinations(top_9, 3):
         remaining_6 = [x for x in top_9 if x not in w1_set]
-
         for w2_set in combinations(remaining_6, 3):
             w3_set = [x for x in remaining_6 if x not in w2_set]
-
             current_sets = [w1_set, w2_set, w3_set]
             current_total_score = 0
 
             for wave_idx, tower_set in enumerate(current_sets):
                 enemy = enemies_db[wave_enemies[wave_idx]]
-
-                # A. Base Score
                 wave_score = sum(scores_matrix[wave_idx][t] for t in tower_set)
-
-                # B. Advanced Synergy Calculation
                 synergy_bonus = 0
 
                 for pair in combinations(tower_set, 2):
                     key = frozenset(pair)
                     if key in synergy_db:
                         for combo in synergy_db[key]:
-                            # --- CONTEXT AWARE SCORING ---
                             rating = combo.get('score', 5)
                             combo_points = rating * 10
                             tags = get_combo_tags(combo['description'], combo['name'])
 
-                            # Weakness Check
-                            if any(t in enemy.get('weakness_types', []) for t in tags):
-                                combo_points *= 1.5
-                            if any(t in enemy.get('resistance_types', []) for t in tags):
-                                combo_points *= 0.5
+                            if any(t in enemy.get('weakness_types', []) for t in tags): combo_points *= 1.5
+                            if any(t in enemy.get('resistance_types', []) for t in tags): combo_points *= 0.5
 
-                                # Setup Check (Guaranteed Trigger)
                             requires_burn = "burn" in combo['description'].lower()
                             requires_slow = "slow" in combo['description'].lower()
-
-                            if requires_burn and "Burn" in setup_conditions:
-                                combo_points *= 1.4
-                            if requires_slow and "Slow" in setup_conditions:
-                                combo_points *= 1.3
-
-                            # Vulnerability Utility
-                            if "Vulnerable" in tags:
-                                wave_score *= 1.15
+                            if requires_burn and "Burn" in setup_conditions: combo_points *= 1.4
+                            if requires_slow and "Slow" in setup_conditions: combo_points *= 1.3
+                            if "Vulnerable" in tags: wave_score *= 1.15
 
                             synergy_bonus += combo_points
 
@@ -351,13 +338,11 @@ if st.session_state.page == 'setup':
     st.title("⚙️ Vanguard Mission Control")
     st.caption(f"Configuring: {defaults.get('weekly_mode_name', 'Custom Week')}")
 
-    # --- Top Controls ---
     c_save, _ = st.columns([1, 4])
     with c_save:
         if st.button("💾 Save Setup for Future", type="secondary"):
             save_user_config()
 
-    # --- INVENTORY & THREATS ---
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("1. Weekly Inventory")
@@ -366,12 +351,11 @@ if st.session_state.page == 'setup':
         format_tower = lambda x: f"{towers_db[x]['name']} ({towers_db[x]['type']})"
         selected_towers = st.multiselect("Available Towers", options=all_tower_ids,
                                          default=st.session_state.user_towers, format_func=format_tower)
-
         if len(selected_towers) < 9:
             st.error(f"❌ Selected {len(selected_towers)}/9 required.")
         else:
             st.success(f"✅ {len(selected_towers)} Towers ready.")
-            st.session_state.user_towers = selected_towers
+        st.session_state.user_towers = selected_towers
 
     with col2:
         st.subheader("2. Weekly Threats")
@@ -383,7 +367,6 @@ if st.session_state.page == 'setup':
 
     st.divider()
 
-    # --- CARD CONFIGURATION ---
     st.subheader("3. Card Loadout (Tier 1 & 2)")
     st.info("Set the 4 card slots per Tier. Duplicates allowed.")
 
@@ -483,7 +466,6 @@ elif st.session_state.page == 'main':
         if error:
             st.error(error)
         else:
-            # --- QUICK LINEUP ---
             st.subheader("📋 Mission Briefing")
             line1 = f"**Wave 1:** {' - '.join([towers_db[tid]['name'] for tid in best_loadout[0]])}"
             line2 = f"**Wave 2:** {' - '.join([towers_db[tid]['name'] for tid in best_loadout[1]])}"
@@ -492,7 +474,6 @@ elif st.session_state.page == 'main':
 
             st.divider()
 
-            # --- DETAILED RESULTS ---
             for i, enemy_id in enumerate(st.session_state.active_waves):
                 enemy = enemies_db[enemy_id]
                 wave_towers = best_loadout[i]
@@ -526,18 +507,16 @@ elif st.session_state.page == 'main':
                             desc = c['description']
                             tags = get_combo_tags(desc, c['name'])
 
-                            # Determine Context Tags
                             badges = []
-                            if any(t in enemy.get('weakness_types', []) for t in tags):
-                                badges.append("⚡ Super Effective")
-                            if any(t in enemy.get('resistance_types', []) for t in tags):
-                                badges.append("🛡️ Resisted")
+                            if any(t in enemy.get('weakness_types', []) for t in tags): badges.append(
+                                "⚡ Super Effective")
+                            if any(t in enemy.get('resistance_types', []) for t in tags): badges.append("🛡️ Resisted")
 
                             setup_conditions = analyze_user_setup(st.session_state.card_setup)
-                            if "burn" in desc.lower() and "Burn" in setup_conditions:
-                                badges.append("🔥 Guaranteed Trigger")
-                            if "slow" in desc.lower() and "Slow" in setup_conditions:
-                                badges.append("❄️ Guaranteed Trigger")
+                            if "burn" in desc.lower() and "Burn" in setup_conditions: badges.append(
+                                "🔥 Guaranteed Trigger")
+                            if "slow" in desc.lower() and "Slow" in setup_conditions: badges.append(
+                                "❄️ Guaranteed Trigger")
 
                             badge_str = " ".join([f"`{b}`" for b in badges])
                             color = "green" if rating >= 8 else "orange"
@@ -558,19 +537,24 @@ elif st.session_state.page == 'main':
                             icon_svg = get_svg(t_data.get('icon', 'beam'), color)
                             b64_svg = base64.b64encode(icon_svg.encode('utf-8')).decode("utf-8")
 
+                            active_chains = get_active_chains_text(t_id)  # <--- NEW: Get Chain Text
+
                             html_code = textwrap.dedent(f"""
-                            <div style="background-color: #1e1e1e; border: 1px solid #333; border-radius: 6px; padding: 10px; display: flex; align-items: center; gap: 10px;">
-                                <img src="data:image/svg+xml;base64,{b64_svg}" style="width:40px; height:40px;">
-                                <div>
-                                    <div style="font-weight:bold; color:#fff; font-size:0.95em;">{t_data['name']}</div>
-                                    <div style="font-size:0.75em; color:{color};">{t_data['type']}</div>
+                            <div style="background-color: #1e1e1e; border: 1px solid #333; border-radius: 6px; padding: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <img src="data:image/svg+xml;base64,{b64_svg}" style="width:40px; height:40px;">
+                                    <div>
+                                        <div style="font-weight:bold; color:#fff; font-size:0.95em;">{t_data['name']}</div>
+                                        <div style="font-size:0.75em; color:{color};">{t_data['type']}</div>
+                                    </div>
+                                    <div style="margin-left:auto; text-align:right;">
+                                        <div style="font-weight:bold; font-size:1.1em; color:#ddd;">{score}</div>
+                                    </div>
                                 </div>
-                                <div style="margin-left:auto; text-align:right;">
-                                    <div style="font-weight:bold; font-size:1.1em; color:#ddd;">{score}</div>
+                                <div style="margin-top:6px;">
+                                    {f'<div style="font-size:0.75em; color:#4ea8de; margin-bottom:2px;">{active_chains}</div>' if active_chains else ''}
+                                    <div style="font-size:0.7em; color:#aaa; line-height:1.2;">{note}</div>
                                 </div>
-                            </div>
-                            <div style="font-size:0.7em; color:#aaa; margin-top:4px; padding-left:4px;">
-                                {note}
                             </div>
                             """)
                             st.markdown(html_code, unsafe_allow_html=True)
