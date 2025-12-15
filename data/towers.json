@@ -1,14 +1,110 @@
 {
-  "guardian": { "name": "Guardian", "type": "Physical", "role": "Core", "damage_tags": ["Bullet", "Physical"], "icon": "guardian" },
-  "sky_guard": { "name": "Sky Guard", "type": "Fire", "role": "Anti-Air", "damage_tags": ["Explosion", "Fire"], "icon": "skyguard" },
-  "aeroblast": { "name": "Aeroblast", "type": "Physical", "role": "AoE", "damage_tags": ["Explosion", "Physical"], "icon": "aeroblast" },
-  "thunderbolt": { "name": "Thunderbolt", "type": "Electric", "role": "Chain", "damage_tags": ["Lightning", "Electric", "Paralyze"], "icon": "thunderbolt" },
-  "firewheel_drone": { "name": "Firewheel Drone", "type": "Fire", "role": "Summon", "damage_tags": ["Burn", "Fire", "Stealth Reveal"], "icon": "firewheel" },
-  "tesla_coil": { "name": "Tesla Coil", "type": "Electric", "role": "Close Range", "damage_tags": ["Shock", "Electric"], "icon": "tesla" },
-  "railgun": { "name": "Railgun", "type": "Physical", "role": "Sniper", "damage_tags": ["Projectile", "Physical"], "icon": "beam" },
-  "beam": { "name": "Beam", "type": "Energy", "role": "Single Target", "damage_tags": ["Beam", "Energy"], "icon": "beam" },
-  "gravity_vortex": { "name": "Gravity Vortex", "type": "Force-field", "role": "Control", "damage_tags": ["Pull", "Force-field"], "icon": "vortex" },
-  "disruption_drone": { "name": "Disruption Drone", "type": "Force-field", "role": "Support", "damage_tags": ["Slow", "Force-field", "Stealth Reveal"], "icon": "disruption" },
-  "laser": { "name": "Laser", "type": "Energy", "role": "Pierce", "damage_tags": ["Laser", "Energy"], "icon": "beam" },
-  "hive": { "name": "Hive", "type": "Force-field", "role": "Summon", "damage_tags": ["Minion", "Force-field"], "icon": "disruption" }
+  "guardian": {
+    "name": "Guardian",
+    "type": "Physical",
+    "role": "Core",
+    "damage_tags": ["Bullet", "Physical"],
+    "icon": "guardian",
+    "super_mode_level": null,
+    "unlocks": {}
+  },
+  "railgun": {
+    "name": "Railgun",
+    "type": "Physical",
+    "role": "Sniper",
+    "damage_tags": ["Projectile", "Physical"],
+    "icon": "beam",
+    "super_mode_level": 14,
+    "unlocks": { "2": "Explosive Shells", "6": "Impact Spread", "10": "Impact Boost", "14": "Super Mode", "18": "Piercing Ricochet", "22": "Surge Pierce" }
+  },
+  "aeroblast": {
+    "name": "Aeroblast",
+    "type": "Physical",
+    "role": "AoE",
+    "damage_tags": ["Explosion", "Physical"],
+    "icon": "aeroblast",
+    "super_mode_level": 10,
+    "unlocks": { "2": "Floating Mine", "6": "Wide Minefield", "10": "Super Mode", "14": "Mine Shockwave", "18": "Secondary Explosion", "22": "Shatter Impact" }
+  },
+  "thunderbolt": {
+    "name": "Thunderbolt",
+    "type": "Electric",
+    "role": "Chain",
+    "damage_tags": ["Lightning", "Electric", "Paralyze"],
+    "icon": "thunderbolt",
+    "super_mode_level": 14,
+    "unlocks": { "2": "Chain Lightning", "6": "Chain Expansion", "10": "Chain Interference", "14": "Super Mode", "18": "Chain Strike", "22": "Paralyzing Shock" }
+  },
+  "tesla_coil": {
+    "name": "Tesla Coil",
+    "type": "Electric",
+    "role": "Close Range",
+    "damage_tags": ["Shock", "Electric", "Explosion"],
+    "icon": "tesla",
+    "super_mode_level": 18,
+    "unlocks": { "2": "Trap Matrix", "6": "Enhanced Matrix", "10": "Matrix Thunderbolt", "14": "Spinning Laser", "18": "Super Mode", "22": "Wasp Mirage" }
+  },
+  "laser": {
+    "name": "Laser",
+    "type": "Energy",
+    "role": "Pierce",
+    "damage_tags": ["Laser", "Energy"],
+    "icon": "beam",
+    "super_mode_level": 10,
+    "unlocks": { "2": "Energy Surge", "6": "Slow Laser", "10": "Super Mode", "14": "Deflected Laser Reflection", "18": "Energy Boost", "22": "Graviton Laser" }
+  },
+  "hive": {
+    "name": "Hive",
+    "type": "Force-field",
+    "role": "Summon",
+    "damage_tags": ["Minion", "Force-field"],
+    "icon": "disruption",
+    "super_mode_level": 18,
+    "unlocks": { "2": "Swarm Echo", "6": "Echo Upgrade II", "10": "Echo Upgrade III", "14": "Wasp Retrieval", "18": "Super Mode", "22": "Aero Split" }
+  },
+  "beam": {
+    "name": "Beam",
+    "type": "Energy",
+    "role": "Single Target",
+    "damage_tags": ["Beam", "Energy"],
+    "icon": "beam",
+    "super_mode_level": 18,
+    "unlocks": { "2": "Beam Refraction", "6": "Refraction Pull", "10": "Refraction Explosion", "14": "Matrix Resonance", "18": "Super Mode", "22": "Disruptive Beam" }
+  },
+  "sky_guard": {
+    "name": "Sky Guard",
+    "type": "Fire",
+    "role": "Anti-Air",
+    "damage_tags": ["Explosion", "Fire"],
+    "icon": "skyguard",
+    "super_mode_level": 18,
+    "unlocks": { "2": "Ignition", "6": "Ignition Amplification", "10": "Death Ignition", "14": "Close-range Explosion", "18": "Super Mode", "22": "Thermal Warhead" }
+  },
+  "firewheel_drone": {
+    "name": "Firewheel Drone",
+    "type": "Fire",
+    "role": "Summon",
+    "damage_tags": ["Burn", "Fire", "Stealth Reveal"],
+    "icon": "firewheel",
+    "super_mode_level": 10,
+    "unlocks": { "2": "Flame Trail", "6": "Blazing Trail", "10": "Super Mode", "14": "Extended Trail", "18": "Vortex Firewheel", "22": "Blazing Pulse" }
+  },
+  "disruption_drone": {
+    "name": "Disruption Drone",
+    "type": "Force-field",
+    "role": "Support",
+    "damage_tags": ["Slow", "Force-field", "Stealth Reveal"],
+    "icon": "disruption",
+    "super_mode_level": 14,
+    "unlocks": { "2": "Random Disturbance", "6": "Rewind Teleport", "10": "Teleport Damage", "14": "Super Mode", "18": "Converging Field", "22": "Overcharged Disruption" }
+  },
+  "gravity_vortex": {
+    "name": "Gravity Vortex",
+    "type": "Force-field",
+    "role": "Control",
+    "damage_tags": ["Pull", "Force-field"],
+    "icon": "vortex",
+    "super_mode_level": 10,
+    "unlocks": { "2": "Small Black Hole", "6": "Black Hole Expansion", "10": "Super Mode", "14": "Destructive Black Hole", "18": "Double Fission", "22": "Binary Stars" }
+  }
 }
