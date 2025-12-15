@@ -262,11 +262,32 @@ elif st.session_state.page == 'main':
 
         st.divider()
 
+        # --- 1. TEXT SUMMARY (Requested Feature) ---
+        st.subheader("📋 Mission Briefing")
+        for i, enemy_id in enumerate(st.session_state.active_waves):
+            enemy = enemies_db[enemy_id]
+
+            # Calculate scores for this wave
+            wave_scores = []
+            for t_id in st.session_state.user_towers:
+                s, _ = calculate_score(enemy_id, t_id)
+                wave_scores.append((t_id, s))
+
+            # Sort and get top 3 names
+            wave_scores.sort(key=lambda x: x[1], reverse=True)
+            top_names = [towers_db[x[0]]['name'] for x in wave_scores[:3]]
+
+            st.markdown(f"**Wave {i + 1} ({enemy['name']}):** " + ", ".join(top_names))
+
+        st.divider()
+
+        # --- 2. DETAILED VISUAL GRID ---
         for i, enemy_id in enumerate(st.session_state.active_waves):
             enemy = enemies_db[enemy_id]
 
             st.markdown(f"### Wave {i + 1}: **{enemy['name']}**")
 
+            # Context Tags
             tags = [f"`{t}`" for t in enemy.get('tags', [])]
             weak = [f"**{w}**" for w in enemy.get('weakness_types', [])]
             res = [f"~~{r}~~" for r in enemy.get('resistance_types', [])]
@@ -279,6 +300,7 @@ elif st.session_state.page == 'main':
             if immu: info += f" | Immunities: {' '.join(immu)}"
             st.caption(info)
 
+            # Scoring
             scored_towers = []
             for t_id in st.session_state.user_towers:
                 score, note = calculate_score(enemy_id, t_id)
@@ -303,30 +325,30 @@ elif st.session_state.page == 'main':
                 b64_svg = base64.b64encode(icon_svg.encode('utf-8')).decode("utf-8")
 
                 with c_cols[idx]:
-                    # FIX: Using textwrap to handle indentation properly
+                    # FIX: Using textwrap.dedent removes the indentation that broke the app
                     html_code = textwrap.dedent(f"""
-                    <div style="
-                        background-color: #262730; 
-                        border: 1px solid #444; 
-                        border-bottom: 3px solid {score_color}; 
-                        border-radius: 8px; 
-                        padding: 10px; 
-                        text-align: center; 
-                        height: 200px;
-                        display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+                            <div style="
+                                background-color: #262730; 
+                                border: 1px solid #444; 
+                                border-bottom: 3px solid {score_color}; 
+                                border-radius: 8px; 
+                                padding: 10px; 
+                                text-align: center; 
+                                height: 200px;
+                                display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
 
-                        <img src="data:image/svg+xml;base64,{b64_svg}" style="width:50px; height:50px; opacity:0.9;">
+                                <img src="data:image/svg+xml;base64,{b64_svg}" style="width:50px; height:50px; opacity:0.9;">
 
-                        <div style="margin-top:5px;">
-                            <div style="font-weight:bold; color: #fff; font-size:1.1em;">{t_data['name']}</div>
-                            <div style="font-size:0.8em; color: {color};">{t_data['type']} • {t_data['role']}</div>
-                        </div>
+                                <div style="margin-top:5px;">
+                                    <div style="font-weight:bold; color: #fff; font-size:1.1em;">{t_data['name']}</div>
+                                    <div style="font-size:0.8em; color: {color};">{t_data['type']} • {t_data['role']}</div>
+                                </div>
 
-                        <div style="width:100%;">
-                            <div style="font-size:1.2em; font-weight:900; color:{score_color};">{score} pts</div>
-                            <div style="font-size:0.7em; color: #aaa; line-height:1.2; min-height:30px;">{item['note']}</div>
-                        </div>
-                    </div>
-                    """)
+                                <div style="width:100%;">
+                                    <div style="font-size:1.2em; font-weight:900; color:{score_color};">{score} pts</div>
+                                    <div style="font-size:0.7em; color: #aaa; line-height:1.2; min-height:30px;">{item['note']}</div>
+                                </div>
+                            </div>
+                            """)
                     st.markdown(html_code, unsafe_allow_html=True)
             st.markdown("<br>", unsafe_allow_html=True)
