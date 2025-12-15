@@ -1,10 +1,9 @@
-import base64
+import streamlit as st
 import json
 import os
 import textwrap
 from itertools import combinations
-
-import streamlit as st
+import base64
 
 # --- 1. SETUP & CONFIGURATION ---
 st.set_page_config(page_title="Vanguard 2.0: Strategy Engine", layout="wide")
@@ -44,14 +43,12 @@ def load_data():
     cards_by_tower = {}
 
     for c in cards:
-        # Build Synergy Map
         if c.get('type') == 'Combo' and 'combo_partner' in c:
             pair_key = frozenset({c['tower_id'], c['combo_partner']})
             if pair_key not in synergy_map:
                 synergy_map[pair_key] = []
             synergy_map[pair_key].append(c)
 
-        # Build Card Lookup
         tid = c['tower_id']
         tier = c['tier']
         if tid not in cards_by_tower: cards_by_tower[tid] = {1: [], 2: [], 3: []}
@@ -96,7 +93,6 @@ user_conf = load_user_config()
 if 'page' not in st.session_state:
     st.session_state.page = 'setup'
 
-# 1. User Towers
 if 'user_towers' not in st.session_state:
     if user_conf and 'user_towers' in user_conf:
         st.session_state.user_towers = user_conf['user_towers']
@@ -104,7 +100,6 @@ if 'user_towers' not in st.session_state:
         default_ids = defaults.get("available_towers", list(towers_db.keys())[:9])
         st.session_state.user_towers = [tid for tid in default_ids if tid in towers_db]
 
-# 2. Enemy Pool
 if 'weekly_enemy_pool' not in st.session_state:
     if user_conf and 'weekly_enemy_pool' in user_conf:
         st.session_state.weekly_enemy_pool = user_conf['weekly_enemy_pool']
@@ -112,14 +107,12 @@ if 'weekly_enemy_pool' not in st.session_state:
         default_pool = defaults.get("weekly_enemy_pool", list(enemies_db.keys())[:8])
         st.session_state.weekly_enemy_pool = [eid for eid in default_pool if eid in enemies_db]
 
-# 3. Card Setup
 if 'card_setup' not in st.session_state:
     if user_conf and 'card_setup' in user_conf:
         st.session_state.card_setup = user_conf['card_setup']
     else:
         st.session_state.card_setup = defaults.get("weekly_card_setup", {})
 
-# 4. Active Waves
 if 'active_waves' not in st.session_state:
     pool = st.session_state.weekly_enemy_pool
     waves = []
@@ -130,7 +123,7 @@ if 'active_waves' not in st.session_state:
     st.session_state.active_waves = waves
 
 
-# --- 4. SCORING & CHAIN LOGIC ---
+# --- 4. SCORING & OPTIMIZATION LOGIC ---
 
 def get_combo_tags(description, name):
     desc = description.lower() + " " + name.lower()
@@ -158,14 +151,10 @@ def analyze_user_setup(user_setup):
 
 
 def get_active_chains_text(tower_id):
-    """Identifies active chains based on selected cards."""
     if tower_id not in st.session_state.card_setup: return ""
-
     setup = st.session_state.card_setup[tower_id]
     selected_names = set([c for c in (setup.get("tier_1", []) + setup.get("tier_2", [])) if c])
-
     chains = {}
-
     for tier in [1, 2]:
         for card in cards_db.get(tower_id, {}).get(tier, []):
             if card['name'] in selected_names and 'chain_group' in card:
@@ -173,14 +162,11 @@ def get_active_chains_text(tower_id):
                 step = card['chain_step']
                 if group not in chains or step > chains[group]:
                     chains[group] = step
-
     if not chains: return ""
-
     parts = []
     for group, step in chains.items():
         roman = "I" * step if step < 4 else str(step)
         parts.append(f"{group} ({roman})")
-
     return "⛓️ " + ", ".join(parts)
 
 
@@ -190,14 +176,14 @@ def calculate_single_score(enemy_id, tower_id):
     score = 100.0
     notes = []
 
-    # --- 1. SETUP BONUSES (Chains) ---
+    # 1. Chain Bonus
     active_chains_text = get_active_chains_text(tower_id)
     if active_chains_text:
         chain_count = active_chains_text.count("(")
         chain_bonus = chain_count * 15
         score += chain_bonus
 
-        # --- 2. MATCHUP MULTIPLIERS ---
+        # 2. Tags Logic
     active_tags = set(tower.get('damage_tags', []))
     if tower_id in st.session_state.card_setup:
         setup = st.session_state.card_setup[tower_id]
@@ -209,7 +195,6 @@ def calculate_single_score(enemy_id, tower_id):
             if any(x in card_name for x in ["Slow", "Stasis"]): active_tags.add("Slow")
             if any(x in card_name for x in ["Stealth Reveal", "Ignition"]): active_tags.add("Stealth Reveal")
 
-    # Immunities
     enemy_immunities = enemy.get('immunities', [])
     enemy_tags = enemy.get('tags', [])
     if "Paralysis" in enemy_immunities and "Paralyze" in active_tags:
@@ -226,7 +211,6 @@ def calculate_single_score(enemy_id, tower_id):
             score *= 1.2
             notes.append("✨ Bypasses Block")
 
-    # Weakness
     is_weak = False
     if tower['type'] in enemy.get('weakness_types', []): is_weak = True
     for tag in active_tags:
@@ -235,7 +219,6 @@ def calculate_single_score(enemy_id, tower_id):
         score *= 1.5
         notes.append("⚡ Weakness")
 
-    # Resistance
     is_resist = False
     if tower['type'] in enemy.get('resistance_types', []): is_resist = True
     for tag in active_tags:
@@ -244,7 +227,6 @@ def calculate_single_score(enemy_id, tower_id):
         score *= 0.5
         notes.append("🛡️ Resist")
 
-    # Tactical Bonuses
     if "Invisible" in enemy_tags or "Stealth" in enemy_tags:
         if "Stealth Reveal" in active_tags:
             score += 40
@@ -267,9 +249,13 @@ def calculate_single_score(enemy_id, tower_id):
     return int(score), ", ".join(notes)
 
 
-def solve_optimal_loadout(wave_enemies, inventory_towers):
+def solve_optimal_loadout(wave_enemies, inventory_towers, mode_2vs1=False):
+    """
+    Optimizes tower allocation.
+    If mode_2vs1=True, it maximizes the sum of the best 2 waves only.
+    """
     if len(inventory_towers) < 9:
-        return None, "Error: You need at least 9 towers in inventory to fill 3 waves!"
+        return None, None, "Error: You need at least 9 towers in inventory to fill 3 waves!"
 
     setup_conditions = analyze_user_setup(st.session_state.card_setup)
     scores_matrix = []
@@ -287,13 +273,16 @@ def solve_optimal_loadout(wave_enemies, inventory_towers):
 
     best_total = -float('inf')
     best_allocation = None
+    best_wave_scores = []  # Store individual wave scores to identify sacrifice later
 
     for w1_set in combinations(top_9, 3):
         remaining_6 = [x for x in top_9 if x not in w1_set]
         for w2_set in combinations(remaining_6, 3):
             w3_set = [x for x in remaining_6 if x not in w2_set]
             current_sets = [w1_set, w2_set, w3_set]
-            current_total_score = 0
+
+            # Calculate score for each wave in this configuration
+            current_wave_scores = []
 
             for wave_idx, tower_set in enumerate(current_sets):
                 enemy = enemies_db[wave_enemies[wave_idx]]
@@ -319,13 +308,22 @@ def solve_optimal_loadout(wave_enemies, inventory_towers):
 
                             synergy_bonus += combo_points
 
-                current_total_score += (wave_score + synergy_bonus)
+                current_wave_scores.append(wave_score + synergy_bonus)
 
-            if current_total_score > best_total:
-                best_total = current_total_score
+            # --- OPTIMIZATION STRATEGY ---
+            if mode_2vs1:
+                # Maximize sum of Top 2 scores (Sacrifice the lowest)
+                optimization_metric = sum(sorted(current_wave_scores, reverse=True)[:2])
+            else:
+                # Maximize Total Score (Balanced)
+                optimization_metric = sum(current_wave_scores)
+
+            if optimization_metric > best_total:
+                best_total = optimization_metric
                 best_allocation = current_sets
+                best_wave_scores = current_wave_scores
 
-    return best_allocation, None
+    return best_allocation, best_wave_scores, None
 
 
 # --- 5. VISUAL ASSETS ---
@@ -350,18 +348,13 @@ if st.session_state.page == 'setup':
     st.title("⚙️ Vanguard Mission Control")
     st.caption(f"Configuring: {defaults.get('weekly_mode_name', 'Custom Week')}")
 
-    # --- Top Controls ---
     c_save, c_load, _ = st.columns([1, 1, 3])
     with c_save:
         if st.button("💾 Save Setup", type="secondary", use_container_width=True):
             save_user_config()
     with c_load:
         if st.button("🔄 Load Weekly Defaults", type="primary", use_container_width=True):
-            # Reset logic: Clear user_config and load from defaults
-            if os.path.exists(USER_CONFIG_FILE):
-                os.remove(USER_CONFIG_FILE)  # Optional: Remove the local save to avoid conflicts
-
-            # Force session state update
+            if os.path.exists(USER_CONFIG_FILE): os.remove(USER_CONFIG_FILE)
             defs = load_defaults()
             valid_towers = [t for t in defs.get("available_towers", []) if t in towers_db]
             st.session_state.user_towers = valid_towers
@@ -420,7 +413,6 @@ if st.session_state.page == 'setup':
         with st.expander(f"🃏 {t_data['name']} Configuration", expanded=False):
             t1_opts = [c['name'] for c in cards_db.get(t_id, {}).get(1, [])]
             t2_opts = [c['name'] for c in cards_db.get(t_id, {}).get(2, [])]
-            # Combined list for flexible selection
             all_opts = sorted(list(set(t1_opts + t2_opts)))
 
             st.markdown("**Tier 1 Slots**")
@@ -457,6 +449,12 @@ if st.session_state.page == 'setup':
 elif st.session_state.page == 'main':
     with st.sidebar:
         st.header("Settings")
+
+        # --- 2:1 MODE TOGGLE ---
+        st.markdown("### 🏆 Strategy Mode")
+        mode_2vs1 = st.checkbox("2:1 Power Mode",
+                                help="Maximize chances of winning 2 rounds, ignoring the score of the weakest round.")
+
         if st.button("⚙️ Edit Weekly Setup", use_container_width=True):
             st.session_state.page = 'setup'
             st.rerun()
@@ -489,12 +487,21 @@ elif st.session_state.page == 'main':
 
         st.divider()
 
-        with st.spinner("Analyzing enemy data & synergy matrices..."):
-            best_loadout, error = solve_optimal_loadout(st.session_state.active_waves, st.session_state.user_towers)
+        with st.spinner("Analyzing data..."):
+            best_loadout, wave_scores, error = solve_optimal_loadout(
+                st.session_state.active_waves,
+                st.session_state.user_towers,
+                mode_2vs1=mode_2vs1
+            )
 
         if error:
             st.error(error)
         else:
+            # Determine sacrifice wave index if in 2:1 mode
+            sacrifice_idx = -1
+            if mode_2vs1 and wave_scores:
+                sacrifice_idx = wave_scores.index(min(wave_scores))
+
             st.subheader("📋 Mission Briefing")
             line1 = f"**Wave 1:** {' - '.join([towers_db[tid]['name'] for tid in best_loadout[0]])}"
             line2 = f"**Wave 2:** {' - '.join([towers_db[tid]['name'] for tid in best_loadout[1]])}"
@@ -507,11 +514,20 @@ elif st.session_state.page == 'main':
                 enemy = enemies_db[enemy_id]
                 wave_towers = best_loadout[i]
 
+                # Check if this is the sacrifice wave
+                is_sacrifice = (i == sacrifice_idx)
+                border_color = "red" if is_sacrifice else "grey"
+
                 with st.container(border=True):
                     c_head, c_tags = st.columns([1, 2])
                     with c_head:
-                        st.markdown(f"#### Wave {i + 1}: {enemy['name']}")
-                        st.caption(f"Faction: {enemy['faction']}")
+                        header_text = f"#### Wave {i + 1}: {enemy['name']}"
+                        if is_sacrifice:
+                            st.markdown(f"#### 💀 Wave {i + 1}: SACRIFICIAL TEAM")
+                            st.caption(f"Enemy: {enemy['name']} (Expected Loss)")
+                        else:
+                            st.markdown(header_text)
+                            st.caption(f"Faction: {enemy['faction']}")
                     with c_tags:
                         tags = [f"`{t}`" for t in enemy.get('tags', [])]
                         if tags: st.markdown(" ".join(tags))
