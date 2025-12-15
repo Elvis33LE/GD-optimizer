@@ -1,0 +1,11 @@
+{
+    "weekly_mode_name": "Project Ember: Vanguard: Week 51",
+    "available_towers": [
+        "guardian", "sky_guard", "laser", "thunderbolt",
+        "disruption_drone", "railgun", "railgun", "gravity_vortex", "beam"
+    ],
+    "weekly_enemy_pool": [
+        "swift_fish", "rock_walker", "excavator", "pursuer", "fire_meteor", "spikeshell_beetle",
+        "elite_specter", "elite_armored_behemoth"
+    ]
+}

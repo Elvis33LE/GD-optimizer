@@ -1,0 +1,14 @@
+{
+  "guardian": { "name": "Guardian", "type": "Physical", "role": "Core", "damage_tags": ["Bullet", "Physical"], "icon": "guardian" },
+  "sky_guard": { "name": "Sky Guard", "type": "Fire", "role": "Anti-Air", "damage_tags": ["Explosion", "Fire"], "icon": "skyguard" },
+  "aeroblast": { "name": "Aeroblast", "type": "Physical", "role": "AoE", "damage_tags": ["Explosion", "Physical"], "icon": "aeroblast" },
+  "thunderbolt": { "name": "Thunderbolt", "type": "Electric", "role": "Chain", "damage_tags": ["Lightning", "Electric", "Paralyze"], "icon": "thunderbolt" },
+  "firewheel_drone": { "name": "Firewheel Drone", "type": "Fire", "role": "Summon", "damage_tags": ["Burn", "Fire", "Stealth Reveal"], "icon": "firewheel" },
+  "tesla_coil": { "name": "Tesla Coil", "type": "Electric", "role": "Close Range", "damage_tags": ["Shock", "Electric"], "icon": "tesla" },
+  "railgun": { "name": "Railgun", "type": "Physical", "role": "Sniper", "damage_tags": ["Projectile", "Physical"], "icon": "beam" },
+  "beam": { "name": "Beam", "type": "Energy", "role": "Single Target", "damage_tags": ["Beam", "Energy"], "icon": "beam" },
+  "gravity_vortex": { "name": "Gravity Vortex", "type": "Force-field", "role": "Control", "damage_tags": ["Pull", "Force-field"], "icon": "vortex" },
+  "disruption_drone": { "name": "Disruption Drone", "type": "Force-field", "role": "Support", "damage_tags": ["Slow", "Force-field", "Stealth Reveal"], "icon": "disruption" },
+  "laser": { "name": "Laser", "type": "Energy", "role": "Pierce", "damage_tags": ["Laser", "Energy"], "icon": "beam" },
+  "hive": { "name": "Hive", "type": "Force-field", "role": "Summon", "damage_tags": ["Minion", "Force-field"], "icon": "disruption" }
+}
