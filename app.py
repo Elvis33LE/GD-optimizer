@@ -303,12 +303,14 @@ elif st.session_state.page == 'main':
         else:
             # --- QUICK LINEUP SUMMARY (Restored!) ---
             st.subheader("📋 Mission Briefing")
-            st.info("💡 **Quick Lineup:**\n\n" +
-                    "\n".join([
-                        f"**Wave {i + 1}** vs {enemies_db[st.session_state.active_waves[i]]['name']}: " +
-                        ", ".join([towers_db[tid]['name'] for tid in best_loadout[i]])
-                        for i in range(3)
-                    ]))
+
+            # Build the 3 lines separately
+            line1 = f"**Wave 1:** {' - '.join([towers_db[tid]['name'] for tid in best_loadout[0]])}"
+            line2 = f"**Wave 2:** {' - '.join([towers_db[tid]['name'] for tid in best_loadout[1]])}"
+            line3 = f"**Wave 3:** {' - '.join([towers_db[tid]['name'] for tid in best_loadout[2]])}"
+
+            # Use double newlines (\n\n) to force distinct lines in Markdown
+            st.info(f"💡 **Quick Lineup:**\n\n{line1}\n\n{line2}\n\n{line3}")
 
             st.divider()
 
