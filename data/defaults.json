@@ -2,10 +2,10 @@
     "weekly_mode_name": "Project Ember: Vanguard: Week 51",
     "available_towers": [
         "guardian", "sky_guard", "laser", "thunderbolt",
-        "disruption_drone", "railgun", "railgun", "gravity_vortex", "beam"
+        "disruption_drone", "railgun", "hive", "gravity_vortex", "beam"
     ],
     "weekly_enemy_pool": [
-        "swift_fish", "rock_walker", "excavator", "pursuer", "fire_meteor", "spikeshell_beetle",
-        "elite_specter", "elite_armored_behemoth"
+        "meteor_carapace_beetle", "bio_tick", "raging_ant_vanguard", "mutated_bat", "silk_hunter", "spikeshell_beetle",
+        "elite_mirage_moth", "elite_armored_insect"
     ]
 }

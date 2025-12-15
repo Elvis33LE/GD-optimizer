@@ -482,5 +482,27 @@
     "resistance_types": [],
     "immunities": [],
     "tags": ["Scaling Threat"]
+  },
+  {
+    "id": "raging_ant_vanguard",
+    "name": "Raging Ant Vanguard",
+    "type": "Normal",
+    "faction": "Insect",
+    "description": "The most ferocious melee unit in the Kronos Hive. When health falls below 10%, it gains 3 seconds of invincibility and high movement speed.",
+    "weakness_types": ["Fire", "Energy"],
+    "resistance_types": [],
+    "immunities": [],
+    "tags": ["Fast", "Invincible", "Melee"]
+  },
+  {
+    "id": "meteor_carapace_beetle",
+    "name": "Meteor Carapace Beetle",
+    "type": "Normal",
+    "faction": "Insect",
+    "description": "Their carapace withstands multiple hits. Evolved to use meteor fragments as armor, charging defenses like living battering rams.",
+    "weakness_types": ["Physical", "Fire"],
+    "resistance_types": [],
+    "immunities": [],
+    "tags": ["Tank", "Armored", "Charger"]
   }
 ]
