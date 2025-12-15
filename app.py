@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import base64
 import os
+import textwrap
 
 # --- 1. SETUP & CONFIGURATION ---
 st.set_page_config(page_title="Vanguard 2.0: Knowledge Base", layout="wide")
