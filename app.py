@@ -3,6 +3,7 @@ import json
 import os
 import textwrap
 from itertools import combinations
+import base64
 
 # --- 1. SETUP & CONFIGURATION ---
 st.set_page_config(page_title="Vanguard 2.0: Strategy Engine", layout="wide")
