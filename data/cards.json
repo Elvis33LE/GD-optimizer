@@ -41,7 +41,8 @@
     "name": "Bullet Explosion",
     "description": "10% chance to explode on hit.",
     "chain_group": "Explosion Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 8
   },
   {
     "tower_id": "guardian",
@@ -50,7 +51,8 @@
     "name": "Charge Activation",
     "description": "Guardian enters Charged State, gaining Charge Points by firing bullets.",
     "chain_group": "Charge Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 6
   },
   {
     "tower_id": "guardian",
@@ -80,7 +82,8 @@
     "name": "Explosion Expansion",
     "description": "Explosion range +50%.",
     "chain_group": "Explosion Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 8
   },
   {
     "tower_id": "guardian",
@@ -89,7 +92,8 @@
     "name": "Quick Charge",
     "description": "Charge Points from Bullets +100%.",
     "chain_group": "Charge Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 6
   },
   {
     "tower_id": "guardian",
@@ -98,7 +102,8 @@
     "name": "Sustained Charge",
     "description": "In Charged State, number of shots fired +100%.",
     "chain_group": "Charge Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 6
   },
   {
     "tower_id": "guardian",
@@ -121,7 +126,8 @@
     "name": "Flame Bullet",
     "description": "Bullets become flame bullets, adding extra fire DMG on hit.",
     "combo_partner": "sky_guard",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 7
   },
   {
     "tower_id": "guardian",
@@ -130,7 +136,8 @@
     "name": "Electric Bullet",
     "description": "When bullets kill an enemy, there is a 50% chance to trigger a Small Lightning Strike.",
     "combo_partner": "thunderbolt",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 6
   },
   {
     "tower_id": "guardian",
@@ -139,7 +146,8 @@
     "name": "Counterburst Scatter",
     "description": "After every 40 shots, the guardian fires a wave of Penetrating Shotgun Shells.",
     "combo_partner": "railgun",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 8
   },
   {
     "tower_id": "guardian",
@@ -148,7 +156,8 @@
     "name": "Explosion Boost",
     "description": "Explosion DMG +60%, explosion chance +10%.",
     "chain_group": "Explosion Chain",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 8
   },
   {
     "tower_id": "guardian",
@@ -157,7 +166,8 @@
     "name": "Laser Shot",
     "description": "20% chance to trigger a Ripping Laser when hitting enemies with bullets.",
     "combo_partner": "laser",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 5
   },
   {
     "tower_id": "guardian",
@@ -166,7 +176,8 @@
     "name": "Disruption Fire",
     "description": "All bullets dealing damage to enemies, 10% chance inflicts 1 stack of [Disruption] effect.",
     "combo_partner": "disruption_drone",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 9
   },
   {
     "tower_id": "guardian",
@@ -175,7 +186,8 @@
     "name": "Mirror Guardian",
     "description": "Creates a clone guardian that deals 50% of the guardian's DMG (Unlock at Lv.21).",
     "combo_partner": "hive",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 10
   },
   {
     "tower_id": "sky_guard",
@@ -205,7 +217,8 @@
     "name": "Impact Reinforcement",
     "description": "After hitting target, launches 3 Small Missiles dealing impact DMG.",
     "chain_group": "Kinetic Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 9
   },
   {
     "tower_id": "sky_guard",
@@ -214,7 +227,8 @@
     "name": "Ignition",
     "description": "Enemies hit receive [Burn] effect.",
     "chain_group": "Fire Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 7
   },
   {
     "tower_id": "sky_guard",
@@ -237,7 +251,8 @@
     "name": "Missile Amplification",
     "description": "Small Sky Guard Missiles +3.",
     "chain_group": "Kinetic Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 9
   },
   {
     "tower_id": "sky_guard",
@@ -246,7 +261,8 @@
     "name": "Ignition Amplification",
     "description": "[Burn] DMG +100%.",
     "chain_group": "Fire Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 7
   },
   {
     "tower_id": "sky_guard",
@@ -276,7 +292,8 @@
     "name": "Collapse Explosion",
     "description": "Creates a Small Black Hole after the Sky Guard Missile exploded.",
     "combo_partner": "gravity_vortex",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 10
   },
   {
     "tower_id": "sky_guard",
@@ -285,7 +302,8 @@
     "name": "Chain Reaction",
     "description": "Small Sky Guard Missiles have a 60% chance to launch an additional Small Missile.",
     "chain_group": "Kinetic Chain",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 9
   },
   {
     "tower_id": "sky_guard",
@@ -294,7 +312,8 @@
     "name": "Death Ignition",
     "description": "Triggers an explosion when an enemy dies while under [Burn] effect.",
     "chain_group": "Fire Chain",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 7
   },
   {
     "tower_id": "sky_guard",
@@ -310,7 +329,8 @@
     "name": "Detonation Thunderbolt",
     "description": "Generates a stationary small Thunderbolt for 5s after Sky Guard missiles kill enemies.",
     "combo_partner": "thunderbolt",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 7
   },
   {
     "tower_id": "sky_guard",
@@ -319,7 +339,8 @@
     "name": "Path Strike",
     "description": "Sky Guard Missiles deal DMG to enemies along their path.",
     "combo_partner": "guardian",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 6
   },
   {
     "tower_id": "laser",
@@ -349,7 +370,8 @@
     "name": "Additional Sweep",
     "description": "Fires 1 additional Sweeping Laser.",
     "chain_group": "Sweep Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 8
   },
   {
     "tower_id": "laser",
@@ -358,7 +380,8 @@
     "name": "Energy Surge",
     "description": "Fires 2 additional Deflected Lasers.",
     "chain_group": "Deflect Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 7
   },
   {
     "tower_id": "laser",
@@ -381,7 +404,8 @@
     "name": "Vulnerable Laser",
     "description": "Enemies hit by Sweeping Lasers receive [Vulnerable] effect.",
     "chain_group": "Sweep Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 8
   },
   {
     "tower_id": "laser",
@@ -390,7 +414,8 @@
     "name": "Slow Laser",
     "description": "Enemies hit by Deflected Lasers receive [Slow] effect.",
     "chain_group": "Deflect Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 7
   },
   {
     "tower_id": "laser",
@@ -420,7 +445,8 @@
     "name": "Energy Paralysis",
     "description": "Enemies hit by Laser receive [Paralyze] effect.",
     "combo_partner": "disruption_drone",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 9
   },
   {
     "tower_id": "laser",
@@ -429,7 +455,8 @@
     "name": "Graviton Laser",
     "description": "Lasers create a pull effect in nearby enemies (Unlock at Lv.22).",
     "combo_partner": "gravity_vortex",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 8
   },
   {
     "tower_id": "laser",
@@ -438,7 +465,8 @@
     "name": "Sweep Boost",
     "description": "Sweeping Laser sweeps once again.",
     "chain_group": "Sweep Chain",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 8
   },
   {
     "tower_id": "laser",
@@ -447,7 +475,8 @@
     "name": "Deflected Laser Reflection",
     "description": "Deflected Laser reflections +1 (Unlock at Lv.14).",
     "chain_group": "Deflect Chain",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 7
   },
   {
     "tower_id": "laser",
@@ -456,7 +485,8 @@
     "name": "Energy Detonation",
     "description": "All Lasers hitting enemies with [Burn] effect will trigger an Ignition Explosion.",
     "combo_partner": "sky_guard",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 8
   },
   {
     "tower_id": "laser",
@@ -465,7 +495,8 @@
     "name": "Convergence Trigger",
     "description": "30% chance to generate a Refracted Beam upon Laser hitting enemies.",
     "combo_partner": "beam",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 7
   },
   {
     "tower_id": "disruption_drone",
@@ -495,7 +526,8 @@
     "name": "Disruption Force",
     "description": "Each time Disruption Field deals damage to enemies, it inflicts 1 stack of [Disruption].",
     "chain_group": "Force Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 4
   },
   {
     "tower_id": "disruption_drone",
@@ -504,7 +536,8 @@
     "name": "Random Disturbance",
     "description": "Enemies hit by Disruption Field have a 5% chance to be teleported back a certain distance.",
     "chain_group": "Teleport Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 10
   },
   {
     "tower_id": "disruption_drone",
@@ -527,7 +560,8 @@
     "name": "Disruption Burst",
     "description": "When [Disruption] effect reaches MAX stacks, deals 1 high burst DMG.",
     "chain_group": "Force Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 4
   },
   {
     "tower_id": "disruption_drone",
@@ -536,7 +570,8 @@
     "name": "Rewind Teleport",
     "description": "Enemies hit by Disruption Field have a 2.5% chance to be transported to start point.",
     "chain_group": "Teleport Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 10
   },
   {
     "tower_id": "disruption_drone",
@@ -566,7 +601,8 @@
     "name": "Small Laser",
     "description": "A Sweeping Laser is generated in the center of Disruption Drone.",
     "combo_partner": "laser",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 6
   },
   {
     "tower_id": "disruption_drone",
@@ -575,7 +611,8 @@
     "name": "Electric Field",
     "description": "Enemies hit by Disruption Field have a 30% chance to be inflicted [Paralyze].",
     "combo_partner": "thunderbolt",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 8
   },
   {
     "tower_id": "disruption_drone",
@@ -584,7 +621,8 @@
     "name": "Area Disruption",
     "description": "When [Disruption] effect reaches MAX stacks, deals 1 extra DMG.",
     "chain_group": "Force Chain",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 4
   },
   {
     "tower_id": "disruption_drone",
@@ -593,7 +631,8 @@
     "name": "Teleport Damage",
     "description": "Teleportation from the Disruption Field deals 3% of the target's MAX HP as DMG.",
     "chain_group": "Teleport Chain",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 10
   },
   {
     "tower_id": "disruption_drone",
@@ -609,7 +648,8 @@
     "name": "Fortress Support",
     "description": "Launch an additional set of Disruption Drones above Fortress.",
     "combo_partner": "guardian",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 9
   },
   {
     "tower_id": "disruption_drone",
@@ -618,7 +658,8 @@
     "name": "Field Replication",
     "description": "When Railgun Shell enters Disruption Field first time, it 100% splits into 1 additional Railgun Shell.",
     "combo_partner": "railgun",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 8
   },
   {
     "tower_id": "aeroblast",
@@ -648,7 +689,8 @@
     "name": "Shotgun Barrage",
     "description": "After Aeroblast fires, it launches 5 penetrating Shotgun Shells.",
     "chain_group": "Shotgun Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 7
   },
   {
     "tower_id": "aeroblast",
@@ -657,7 +699,8 @@
     "name": "Floating Mine",
     "description": "Upon explosion, Aeroblast Shell leaves 2 Floating Mines in the explosion area.",
     "chain_group": "Mine Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 9
   },
   {
     "tower_id": "aeroblast",
@@ -680,7 +723,8 @@
     "name": "Extra Loading",
     "description": "For each enemy killed, Aeroblast fires 1 additional penetrating Shotgun Shell (MAX: 10).",
     "chain_group": "Shotgun Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 7
   },
   {
     "tower_id": "aeroblast",
@@ -689,7 +733,8 @@
     "name": "Wide Minefield",
     "description": "Floating Mine +2, explosion DMG +25%.",
     "chain_group": "Mine Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 9
   },
   {
     "tower_id": "aeroblast",
@@ -698,7 +743,8 @@
     "name": "Mine Shockwave",
     "description": "Floating Mine +2, knockback +100% (Unlock at Lv.14).",
     "chain_group": "Mine Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 9
   },
   {
     "tower_id": "aeroblast",
@@ -728,7 +774,8 @@
     "name": "Piercing Blast",
     "description": "Aeroblast Shell Penetration +1.",
     "combo_partner": "railgun",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 7
   },
   {
     "tower_id": "aeroblast",
@@ -737,7 +784,8 @@
     "name": "Firewheel Summon",
     "description": "For each enemy hit by Aeroblast Shell explosion, it generates a Small Firewheel Drone.",
     "combo_partner": "firewheel_drone",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 6
   },
   {
     "tower_id": "aeroblast",
@@ -746,7 +794,8 @@
     "name": "Shotgun Penetration",
     "description": "Penetrating Shotgun Shells penetration DMG +50%, range +70%.",
     "chain_group": "Shotgun Chain",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 7
   },
   {
     "tower_id": "aeroblast",
@@ -755,7 +804,8 @@
     "name": "Gravity Bomb",
     "description": "Aeroblast shell DMG +100%, pulls enemies to the center before the explosion.",
     "combo_partner": "gravity_vortex",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 10
   },
   {
     "tower_id": "aeroblast",
@@ -764,7 +814,8 @@
     "name": "Shatter Impact",
     "description": "Aeroblast Shell creates two additional Ripping Lasers upon impact (Unlock at Lv.22).",
     "combo_partner": "laser",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 8
   },
   {
     "tower_id": "thunderbolt",
@@ -794,7 +845,8 @@
     "name": "Lightning Paralysis",
     "description": "Enemies hit by Lightning Strike receive [Paralyze] effect.",
     "chain_group": "Paralysis Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 9
   },
   {
     "tower_id": "thunderbolt",
@@ -803,7 +855,8 @@
     "name": "Chain Lightning",
     "description": "Lightning Strike trigger 1 Chain Lightning on hit (MAX: 5).",
     "chain_group": "Chain Lightning",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 8
   },
   {
     "tower_id": "thunderbolt",
@@ -826,7 +879,8 @@
     "name": "Paralysis Extension",
     "description": "Duration of [Paralyze] effect caused by the Thunderbolt +100%.",
     "chain_group": "Paralysis Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 9
   },
   {
     "tower_id": "thunderbolt",
@@ -835,7 +889,8 @@
     "name": "Chain Expansion",
     "description": "Chain Lightning's target +4.",
     "chain_group": "Chain Lightning",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 8
   },
   {
     "tower_id": "thunderbolt",
@@ -865,7 +920,8 @@
     "name": "Lightning Aftershock",
     "description": "There is a 50% chance to generate 1 Floating Mine by Thunderbolt hits enemies.",
     "combo_partner": "aeroblast",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 6
   },
   {
     "tower_id": "thunderbolt",
@@ -874,7 +930,8 @@
     "name": "Lightning Trail",
     "description": "After Lightning Strike, leaving a flame trail during flight.",
     "combo_partner": "firewheel_drone",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 5
   },
   {
     "tower_id": "thunderbolt",
@@ -883,7 +940,8 @@
     "name": "Life Erosion",
     "description": "Lightning Strike deals an additional 3% of the target's MAX HP as DMG when inflicting [Paralyze].",
     "chain_group": "Paralysis Chain",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 9
   },
   {
     "tower_id": "thunderbolt",
@@ -892,7 +950,8 @@
     "name": "Chain Interference",
     "description": "Enemies hit by Chain Lightning receive [Paralyze] effect, Chain Lightning DMG +100%.",
     "chain_group": "Chain Lightning",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 8
   },
   {
     "tower_id": "thunderbolt",
@@ -901,7 +960,8 @@
     "name": "Lightning Teleportation",
     "description": "Enemies hit by Lightning Strike or Chain Lightning have a 50% chance to be teleported back.",
     "combo_partner": "disruption_drone",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 9
   },
   {
     "tower_id": "beam",
@@ -924,7 +984,8 @@
     "name": "Beam Refraction",
     "description": "When the Beam hits a target, it generates Refracted Beams with +2 refractions.",
     "chain_group": "Refraction Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 8
   },
   {
     "tower_id": "beam",
@@ -933,7 +994,8 @@
     "name": "Damage Increase",
     "description": "Beam deals increasing damage to the same target (MAX: 200%).",
     "chain_group": "Damage Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 10
   },
   {
     "tower_id": "beam",
@@ -963,7 +1025,8 @@
     "name": "Stacking Damage",
     "description": "When the Beam switches targets, damage continues to increase.",
     "chain_group": "Damage Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 10
   },
   {
     "tower_id": "beam",
@@ -972,7 +1035,8 @@
     "name": "Refraction Pull",
     "description": "Refraction +2, Refracted Beams will pull the hit target towards the center.",
     "chain_group": "Refraction Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 8
   },
   {
     "tower_id": "beam",
@@ -988,7 +1052,8 @@
     "name": "Extra Beam",
     "description": "Release an additional secondary Beam.",
     "combo_partner": "laser",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 8
   },
   {
     "tower_id": "beam",
@@ -997,7 +1062,8 @@
     "name": "Target Explosion",
     "description": "Each hit from Beam triggers an explosion.",
     "combo_partner": "sky_guard",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 7
   },
   {
     "tower_id": "beam",
@@ -1006,7 +1072,8 @@
     "name": "Disruptive Beam",
     "description": "Targets hit by Beam generate a small disruption field (Unlock at Lv.22).",
     "combo_partner": "disruption_drone",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 8
   },
   {
     "tower_id": "beam",
@@ -1015,7 +1082,8 @@
     "name": "Extreme Focus",
     "description": "Damage stacking cap increased to 400%.",
     "chain_group": "Damage Chain",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 10
   },
   {
     "tower_id": "beam",
@@ -1024,7 +1092,8 @@
     "name": "Refraction Explosion",
     "description": "Each hit by Refracted Beam will cause an explosion.",
     "chain_group": "Refraction Chain",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 8
   },
   {
     "tower_id": "beam",
@@ -1033,7 +1102,8 @@
     "name": "Beam Lightning",
     "description": "Each hit from Beam has a 30% chance to trigger 1 Chain Lightning.",
     "combo_partner": "thunderbolt",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 7
   },
   {
     "tower_id": "beam",
@@ -1042,7 +1112,8 @@
     "name": "Matrix Resonance",
     "description": "Beam releases an expanding Electric Matrix on hit.",
     "combo_partner": "tesla_coil",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 8
   },
   {
     "tower_id": "firewheel_drone",
@@ -1072,7 +1143,8 @@
     "name": "Mini Drones",
     "description": "Firewheel Drone summons 2 Mini Firewheel Drones every 3s.",
     "chain_group": "Summon Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 7
   },
   {
     "tower_id": "firewheel_drone",
@@ -1081,7 +1153,8 @@
     "name": "Flame Trail",
     "description": "Firewheel Drone leaves a Flame Trail for 2s during flight.",
     "chain_group": "Trail Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 6
   },
   {
     "tower_id": "firewheel_drone",
@@ -1104,7 +1177,8 @@
     "name": "Killing Array",
     "description": "For every 2 enemies directly killed by Firewheel Drone, summon 2 Mini Firewheel Drones.",
     "chain_group": "Summon Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 7
   },
   {
     "tower_id": "firewheel_drone",
@@ -1113,7 +1187,8 @@
     "name": "Blazing Trail",
     "description": "Flame Trail DMG +60%.",
     "chain_group": "Trail Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 6
   },
   {
     "tower_id": "firewheel_drone",
@@ -1143,7 +1218,8 @@
     "name": "Vortex Firewheel",
     "description": "Firewheel Drone creates a pull effect around it (Unlock at Lv.18).",
     "combo_partner": "gravity_vortex",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 9
   },
   {
     "tower_id": "firewheel_drone",
@@ -1152,7 +1228,8 @@
     "name": "Mini Size Boost",
     "description": "Mini Firewheel Drone DMG +50%, duration +50%.",
     "chain_group": "Summon Chain",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 7
   },
   {
     "tower_id": "firewheel_drone",
@@ -1161,7 +1238,8 @@
     "name": "Extended Trail",
     "description": "Flame Trail duration +2s (Unlock at Lv.14).",
     "chain_group": "Trail Chain",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 6
   },
   {
     "tower_id": "firewheel_drone",
@@ -1170,7 +1248,8 @@
     "name": "Extra Barrage",
     "description": "For every 15 hits dealt by Firewheel Drone, launch 1 ring of penetrating bullets.",
     "combo_partner": "aeroblast",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 7
   },
   {
     "tower_id": "firewheel_drone",
@@ -1179,7 +1258,8 @@
     "name": "Blazing Pulse",
     "description": "Firewheel Drone release a pulse wave every 1.5s (Unlock at Lv.22).",
     "combo_partner": "tesla_coil",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 8
   },
   {
     "tower_id": "hive",
@@ -1209,7 +1289,8 @@
     "name": "Contact Pulse",
     "description": "Wasp Releases 1 Pulse Wave on first hit.",
     "chain_group": "Pulse Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 6
   },
   {
     "tower_id": "hive",
@@ -1218,7 +1299,8 @@
     "name": "Swarm Echo",
     "description": "Wasps spawn 1 Echo Wasp I on kill (MAX: 1).",
     "chain_group": "Echo Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 10
   },
   {
     "tower_id": "hive",
@@ -1241,7 +1323,8 @@
     "name": "Amplified Pulse",
     "description": "Pulse Wave DMG range +30% and inflicts [Slow] effect on hit.",
     "chain_group": "Pulse Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 6
   },
   {
     "tower_id": "hive",
@@ -1250,7 +1333,8 @@
     "name": "Final Resonance",
     "description": "Wasp releases 1 Pulse Wave when it ends.",
     "chain_group": "Pulse Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 6
   },
   {
     "tower_id": "hive",
@@ -1259,7 +1343,8 @@
     "name": "Echo Upgrade II",
     "description": "Evolves echoes to Echo Wasp II.",
     "chain_group": "Echo Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 10
   },
   {
     "tower_id": "hive",
@@ -1289,7 +1374,8 @@
     "name": "Electro-Wasps",
     "description": "Each Wasp attack has a 50% chance to release a High-voltage shock.",
     "combo_partner": "tesla_coil",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 7
   },
   {
     "tower_id": "hive",
@@ -1298,7 +1384,8 @@
     "name": "Aero Split",
     "description": "60% chance for Wasp to split into 3 Small Railgun Shells upon hitting an enemy (Unlock at Lv.22).",
     "combo_partner": "aeroblast",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 8
   },
   {
     "tower_id": "hive",
@@ -1307,7 +1394,8 @@
     "name": "Echo Upgrade III",
     "description": "Evolves echoes to Echo Wasp III.",
     "chain_group": "Echo Chain",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 10
   },
   {
     "tower_id": "hive",
@@ -1316,7 +1404,8 @@
     "name": "Volley Wasp",
     "description": "Wasps bullets +1.",
     "combo_partner": "guardian",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 7
   },
   {
     "tower_id": "hive",
@@ -1325,7 +1414,8 @@
     "name": "Swarm Fury",
     "description": "Wasps +30% DMG after each attack.",
     "combo_partner": "laser",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 10
   },
   {
     "tower_id": "railgun",
@@ -1355,7 +1445,8 @@
     "name": "Basic Split",
     "description": "Upon hitting the first enemy, Railgun Shell splits into 2 Small Railgun Shells, with a 20% chance to split into 2 more.",
     "chain_group": "Split Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 9
   },
   {
     "tower_id": "railgun",
@@ -1364,7 +1455,8 @@
     "name": "Explosive Shells",
     "description": "Railgun Shell explodes on hit.",
     "chain_group": "Impact Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 7
   },
   {
     "tower_id": "railgun",
@@ -1387,7 +1479,8 @@
     "name": "Piercing Enhancement",
     "description": "Upon hitting the first enemy, Railgun Shell splits into 2 Mini Railgun Shells, with a 20% chance to split into 2 more.",
     "chain_group": "Split Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 9
   },
   {
     "tower_id": "railgun",
@@ -1396,7 +1489,8 @@
     "name": "Impact Spread",
     "description": "Railgun Shell explosion range +20% for each penetration.",
     "chain_group": "Impact Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 7
   },
   {
     "tower_id": "railgun",
@@ -1405,7 +1499,8 @@
     "name": "Impact Boost",
     "description": "Railgun Shell explosion DMG +30% for each penetration.",
     "chain_group": "Impact Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 7
   },
   {
     "tower_id": "railgun",
@@ -1428,7 +1523,8 @@
     "name": "Piercing Mark",
     "description": "Enemies hit by all Railgun shells receive [Physical Vulnerable] effect.",
     "combo_partner": "guardian",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 9
   },
   {
     "tower_id": "railgun",
@@ -1437,7 +1533,8 @@
     "name": "Surge Pierce",
     "description": "Railgun Shells have a 50% chance to trigger a High-voltage shock upon enemy kill (Unlock at Lv.22).",
     "combo_partner": "tesla_coil",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 7
   },
   {
     "tower_id": "railgun",
@@ -1446,7 +1543,8 @@
     "name": "Split Mastery",
     "description": "All Railgun shells' split chance +40%.",
     "chain_group": "Split Chain",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 9
   },
   {
     "tower_id": "railgun",
@@ -1455,7 +1553,8 @@
     "name": "Secondary Minefield",
     "description": "Railgun Shell releases 1 Floating Mine on hit.",
     "combo_partner": "aeroblast",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 6
   },
   {
     "tower_id": "railgun",
@@ -1464,7 +1563,8 @@
     "name": "Piercing Ricochet",
     "description": "All Railgun Shells penetration +1, reflection +1 (Unlock at Lv.18).",
     "combo_partner": "laser",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 8
   },
   {
     "tower_id": "tesla_coil",
@@ -1494,7 +1594,8 @@
     "name": "Charge Expansion",
     "description": "Teslacoil charge time +0.5s, DMG range increases with charge time.",
     "chain_group": "Charge Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 6
   },
   {
     "tower_id": "tesla_coil",
@@ -1503,7 +1604,8 @@
     "name": "Trap Matrix",
     "description": "Teslacoil releases Electric Matrix with additional DMG and [Slow] effect for 2s in explosion area.",
     "chain_group": "Matrix Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 9
   },
   {
     "tower_id": "tesla_coil",
@@ -1526,7 +1628,8 @@
     "name": "Charge Destruction",
     "description": "Teslacoil charge time +0.5s, DMG increases with charge time.",
     "chain_group": "Charge Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 6
   },
   {
     "tower_id": "tesla_coil",
@@ -1535,7 +1638,8 @@
     "name": "Enhanced Matrix",
     "description": "Electric Matrix DMG +100%, duration +1s.",
     "chain_group": "Matrix Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 9
   },
   {
     "tower_id": "tesla_coil",
@@ -1558,7 +1662,8 @@
     "name": "Cooperative Beam",
     "description": "During charging, Teslacoil releases 2 Refracted Beams.",
     "combo_partner": "beam",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 8
   },
   {
     "tower_id": "tesla_coil",
@@ -1567,7 +1672,8 @@
     "name": "Wasp Mirage",
     "description": "Hitting an enemy with the Teslacoil summons a Echo Wasp (Unlock at Lv.22).",
     "combo_partner": "hive",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 7
   },
   {
     "tower_id": "tesla_coil",
@@ -1576,7 +1682,8 @@
     "name": "Charge Delayed",
     "description": "Charge time +1s.",
     "chain_group": "Charge Chain",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 6
   },
   {
     "tower_id": "tesla_coil",
@@ -1585,7 +1692,8 @@
     "name": "Matrix Thunderbolt",
     "description": "The Electric Matrix spawns a stationary Small Thunderbolt every 0.5s, lasting 5s.",
     "chain_group": "Matrix Chain",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 9
   },
   {
     "tower_id": "tesla_coil",
@@ -1594,7 +1702,8 @@
     "name": "Highvolt Trigger",
     "description": "Teslacoil Explosion triggers 1 Chain Lightning on hit enemies (MAX: 5).",
     "combo_partner": "thunderbolt",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 8
   },
   {
     "tower_id": "tesla_coil",
@@ -1603,7 +1712,8 @@
     "name": "Spinning Laser",
     "description": "Teslacoil releases 1 Spinning Laser on hit.",
     "combo_partner": "laser",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 7
   },
   {
     "tower_id": "gravity_vortex",
@@ -1633,7 +1743,8 @@
     "name": "Static Wormhole",
     "description": "When Gravitational Field hits the first enemy, a portal is created to teleport enemies to the location where the field disappears for 3s.",
     "chain_group": "Wormhole Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 8
   },
   {
     "tower_id": "gravity_vortex",
@@ -1642,7 +1753,8 @@
     "name": "Small Black Hole",
     "description": "Creates a small black hole continuously pulling enemies for 5s after the Gravitational Field disappears.",
     "chain_group": "Black Hole Chain",
-    "chain_step": 1
+    "chain_step": 1,
+    "score": 10
   },
   {
     "tower_id": "gravity_vortex",
@@ -1665,7 +1777,8 @@
     "name": "Wormhole Expansion",
     "description": "Portal entry range +100%.",
     "chain_group": "Wormhole Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 8
   },
   {
     "tower_id": "gravity_vortex",
@@ -1674,7 +1787,8 @@
     "name": "Black Hole Expansion",
     "description": "Small Black Hole range +50%, pulling force +50%.",
     "chain_group": "Black Hole Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 10
   },
   {
     "tower_id": "gravity_vortex",
@@ -1683,7 +1797,8 @@
     "name": "Wormhole Enhancement",
     "description": "Portal duration (entrance and exit) +100%.",
     "chain_group": "Wormhole Chain",
-    "chain_step": 2
+    "chain_step": 2,
+    "score": 8
   },
   {
     "tower_id": "gravity_vortex",
@@ -1713,7 +1828,8 @@
     "name": "Field Disruption",
     "description": "Gravitational Field inflicts [Disruption] effect on hit.",
     "combo_partner": "disruption_drone",
-    "partner_tier_req": 1
+    "partner_tier_req": 1,
+    "score": 9
   },
   {
     "tower_id": "gravity_vortex",
@@ -1722,7 +1838,8 @@
     "name": "Destructive Black Hole",
     "description": "Small Black Hole DMG +250%.",
     "chain_group": "Black Hole Chain",
-    "chain_step": 3
+    "chain_step": 3,
+    "score": 10
   },
   {
     "tower_id": "gravity_vortex",
@@ -1731,7 +1848,8 @@
     "name": "Double Fission",
     "description": "Gravitational Field splits into two small Gravitational Fields at the end (Unlock at Lv.18).",
     "combo_partner": "railgun",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 8
   },
   {
     "tower_id": "gravity_vortex",
@@ -1740,6 +1858,7 @@
     "name": "Binary Stars",
     "description": "Gravitational Field splits into a pair of spinning Binary Stars (Unlock at Lv.22).",
     "combo_partner": "firewheel_drone",
-    "partner_tier_req": 2
+    "partner_tier_req": 2,
+    "score": 9
   }
-  ]
+]
