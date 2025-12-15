@@ -3,7 +3,6 @@ import json
 import os
 import textwrap
 from itertools import combinations
-import base64
 
 # --- 1. SETUP & CONFIGURATION ---
 st.set_page_config(page_title="Vanguard 2.0: Strategy Engine", layout="wide")
@@ -40,6 +39,7 @@ def load_data():
     # Process Synergies & Card Lookup
     synergy_map = {}
     cards_by_tower = {}
+    card_details = {}  # Map name -> card object for type checking
 
     for c in cards:
         # Build Synergy Map
@@ -56,7 +56,11 @@ def load_data():
         if tier in cards_by_tower[tid]:
             cards_by_tower[tid][tier].append(c)
 
-    return towers, enemies_dict, synergy_map, cards_by_tower
+        # Store full details by name for easy lookup later
+        # (Assuming names are unique per tower, which they generally are)
+        card_details[f"{tid}_{c['name']}"] = c
+
+    return towers, enemies_dict, synergy_map, cards_by_tower, card_details
 
 
 def load_defaults():
@@ -65,7 +69,7 @@ def load_defaults():
     return {}
 
 
-towers_db, enemies_db, synergy_db, cards_db = load_data()
+towers_db, enemies_db, synergy_db, cards_db, card_details_db = load_data()
 defaults = load_defaults()
 
 # --- 3. SESSION STATE ---
@@ -114,16 +118,14 @@ def calculate_single_score(enemy_id, tower_id):
         all_selected_card_names = setup.get("tier_1", []) + setup.get("tier_2", [])
 
         # Look up card objects to find effects
-        # (This is a simplified check based on card names mapping to known effects)
         for card_name in all_selected_card_names:
-            # Add implicit tags based on known card keywords
             if "Ignition" in card_name or "Burning" in card_name or "Flame" in card_name:
                 active_tags.add("Burn")
             if "Paralysis" in card_name or "Paralyze" in card_name:
                 active_tags.add("Paralyze")
             if "Slow" in card_name or "Stasis" in card_name:
                 active_tags.add("Slow")
-            if "Stealth Reveal" in card_name or "Ignition" in card_name:  # Fire usually reveals
+            if "Stealth Reveal" in card_name or "Ignition" in card_name:
                 active_tags.add("Stealth Reveal")
 
     # A. Hard Counters (Immunities)
@@ -289,54 +291,82 @@ if st.session_state.page == 'setup':
 
     # --- SECTION 2: CARD CONFIGURATION ---
     st.subheader("3. Card Loadout (Tier 1 & 2)")
-    st.info("Configure the 4 active cards for Tier 1 and Tier 2 for each tower.")
+    st.info("Set the 4 card slots for Tier 1 and Tier 2. Basic cards can be selected multiple times.")
+
+
+    # Helper function to get default slot value safely
+    def get_default_slot(tower_id, tier, slot_idx):
+        try:
+            return st.session_state.card_setup[tower_id][f"tier_{tier}"][slot_idx]
+        except (KeyError, IndexError):
+            return None
+
+
+    # Helper function to get index of item in options
+    def get_opt_idx(options, item):
+        try:
+            return options.index(item)
+        except ValueError:
+            return 0
+
 
     # Iterate only through selected towers
     for t_id in st.session_state.user_towers:
         t_data = towers_db[t_id]
 
-        # Ensure session state structure exists for this tower
+        # Ensure session state structure exists
         if t_id not in st.session_state.card_setup:
             st.session_state.card_setup[t_id] = {"tier_1": [], "tier_2": []}
 
         with st.expander(f"🃏 {t_data['name']} Configuration", expanded=False):
-            c_t1, c_t2 = st.columns(2)
+            # Get available cards
+            # We add a "None" or similar option if slots aren't mandatory, but game implies 4 slots.
+            t1_opts = [c['name'] for c in cards_db.get(t_id, {}).get(1, [])]
+            t2_opts = [c['name'] for c in cards_db.get(t_id, {}).get(2, [])]
 
-            # Get available cards for this tower
-            t1_options = [c['name'] for c in cards_db.get(t_id, {}).get(1, [])]
-            t2_options = [c['name'] for c in cards_db.get(t_id, {}).get(2, [])]
+            # --- Tier 1 Columns (4 slots) ---
+            st.markdown("**Tier 1 Slots**")
+            cols_t1 = st.columns(4)
+            current_t1_selections = []
 
-            # Tier 1 Selector
-            with c_t1:
-                st.markdown("**Tier 1 Cards (Max 4)**")
-                current_t1 = st.session_state.card_setup[t_id].get("tier_1", [])
-                current_t1 = [c for c in current_t1 if c in t1_options]
+            for i in range(4):
+                with cols_t1[i]:
+                    default_val = get_default_slot(t_id, 1, i)
+                    # If default not in options (e.g. data changed), fallback to 0
+                    idx = get_opt_idx(t1_opts, default_val)
 
-                sel_t1 = st.multiselect(
-                    "Select T1",
-                    options=t1_options,
-                    default=current_t1,
-                    key=f"{t_id}_t1",
-                    label_visibility="collapsed"
-                )
-                st.session_state.card_setup[t_id]["tier_1"] = sel_t1[:4]  # Enforce limit
-                if len(sel_t1) > 4: st.warning("Max 4 cards!")
+                    val = st.selectbox(
+                        f"Slot {i + 1}",
+                        options=t1_opts,
+                        index=idx,
+                        key=f"{t_id}_t1_{i}",
+                        label_visibility="collapsed"
+                    )
+                    current_t1_selections.append(val)
 
-            # Tier 2 Selector
-            with c_t2:
-                st.markdown("**Tier 2 Cards (Max 4)**")
-                current_t2 = st.session_state.card_setup[t_id].get("tier_2", [])
-                current_t2 = [c for c in current_t2 if c in t2_options]
+            # Update session state immediately
+            st.session_state.card_setup[t_id]["tier_1"] = current_t1_selections
 
-                sel_t2 = st.multiselect(
-                    "Select T2",
-                    options=t2_options,
-                    default=current_t2,
-                    key=f"{t_id}_t2",
-                    label_visibility="collapsed"
-                )
-                st.session_state.card_setup[t_id]["tier_2"] = sel_t2[:4]
-                if len(sel_t2) > 4: st.warning("Max 4 cards!")
+            # --- Tier 2 Columns (4 slots) ---
+            st.markdown("**Tier 2 Slots**")
+            cols_t2 = st.columns(4)
+            current_t2_selections = []
+
+            for i in range(4):
+                with cols_t2[i]:
+                    default_val = get_default_slot(t_id, 2, i)
+                    idx = get_opt_idx(t2_opts, default_val)
+
+                    val = st.selectbox(
+                        f"Slot {i + 1}",
+                        options=t2_opts,
+                        index=idx,
+                        key=f"{t_id}_t2_{i}",
+                        label_visibility="collapsed"
+                    )
+                    current_t2_selections.append(val)
+
+            st.session_state.card_setup[t_id]["tier_2"] = current_t2_selections
 
     st.markdown("---")
     _, c_btn, _ = st.columns([1, 2, 1])
@@ -388,9 +418,8 @@ elif st.session_state.page == 'main':
         if error:
             st.error(error)
         else:
-            # --- QUICK LINEUP (Simple Format) ---
+            # --- QUICK LINEUP ---
             st.subheader("📋 Mission Briefing")
-
             line1 = f"**Wave 1:** {' - '.join([towers_db[tid]['name'] for tid in best_loadout[0]])}"
             line2 = f"**Wave 2:** {' - '.join([towers_db[tid]['name'] for tid in best_loadout[1]])}"
             line3 = f"**Wave 3:** {' - '.join([towers_db[tid]['name'] for tid in best_loadout[2]])}"
