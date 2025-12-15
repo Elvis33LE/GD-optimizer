@@ -36,16 +36,26 @@ def load_data():
 
     enemies_dict = {e['id']: e for e in enemies}
 
-    # Process Synergies from Cards
+    # Process Synergies & Card Lookup
     synergy_map = {}
+    cards_by_tower = {}
+
     for c in cards:
+        # Build Synergy Map
         if c.get('type') == 'Combo' and 'combo_partner' in c:
             pair_key = frozenset({c['tower_id'], c['combo_partner']})
             if pair_key not in synergy_map:
                 synergy_map[pair_key] = []
             synergy_map[pair_key].append(c)
 
-    return towers, enemies_dict, synergy_map
+        # Build Card Lookup (Tower -> Tier -> List of Cards)
+        tid = c['tower_id']
+        tier = c['tier']
+        if tid not in cards_by_tower: cards_by_tower[tid] = {1: [], 2: [], 3: []}
+        if tier in cards_by_tower[tid]:
+            cards_by_tower[tid][tier].append(c)
+
+    return towers, enemies_dict, synergy_map, cards_by_tower
 
 
 def load_defaults():
@@ -54,7 +64,7 @@ def load_defaults():
     return {}
 
 
-towers_db, enemies_db, synergy_db = load_data()
+towers_db, enemies_db, synergy_db, cards_db = load_data()
 defaults = load_defaults()
 
 # --- 3. SESSION STATE ---
@@ -71,6 +81,10 @@ if 'weekly_enemy_pool' not in st.session_state:
     valid_pool = [eid for eid in default_pool if eid in enemies_db]
     st.session_state.weekly_enemy_pool = valid_pool
 
+# Initialize Card Setup from Defaults
+if 'card_setup' not in st.session_state:
+    st.session_state.card_setup = defaults.get("weekly_card_setup", {})
+
 if 'active_waves' not in st.session_state:
     pool = st.session_state.weekly_enemy_pool
     waves = []
@@ -83,38 +97,58 @@ if 'active_waves' not in st.session_state:
 
 # --- 4. SCORING ENGINE ---
 def calculate_single_score(enemy_id, tower_id):
-    """Calculates Base Effectiveness (Level 1 Multipliers)."""
+    """Calculates Score. Now includes logic for selected cards (e.g. adding tags)."""
     enemy = enemies_db[enemy_id]
     tower = towers_db[tower_id]
 
     score = 100.0
     notes = []
 
+    # 1. Determine Effective Tags (Base + Cards)
+    active_tags = set(tower.get('damage_tags', []))
+
+    # Check selected cards for added utility
+    if tower_id in st.session_state.card_setup:
+        setup = st.session_state.card_setup[tower_id]
+        all_selected_card_names = setup.get("tier_1", []) + setup.get("tier_2", [])
+
+        # Look up card objects to find effects
+        # (This is a simplified check based on card names mapping to known effects)
+        for card_name in all_selected_card_names:
+            # Add implicit tags based on known card keywords
+            if "Ignition" in card_name or "Burning" in card_name or "Flame" in card_name:
+                active_tags.add("Burn")
+            if "Paralysis" in card_name or "Paralyze" in card_name:
+                active_tags.add("Paralyze")
+            if "Slow" in card_name or "Stasis" in card_name:
+                active_tags.add("Slow")
+            if "Stealth Reveal" in card_name or "Ignition" in card_name:  # Fire usually reveals
+                active_tags.add("Stealth Reveal")
+
     # A. Hard Counters (Immunities)
     enemy_immunities = enemy.get('immunities', [])
     enemy_tags = enemy.get('tags', [])
-    tower_tags = tower.get('damage_tags', [])
 
-    if "Paralysis" in enemy_immunities and "Paralyze" in tower_tags:
+    if "Paralysis" in enemy_immunities and "Paralyze" in active_tags:
         score *= 0.1
         notes.append("⛔ Immune: Paralysis")
 
-    if "Slow" in enemy_immunities and "Slow" in tower_tags:
+    if "Slow" in enemy_immunities and "Slow" in active_tags:
         score *= 0.5
         notes.append("⛔ Immune: Slow")
 
     if "Projectile Block" in enemy_tags:
-        if "Projectile" in tower_tags:
+        if "Projectile" in active_tags:
             score *= 0.0
             notes.append("❌ BLOCKED")
-        elif "Beam" in tower_tags or "Lightning" in tower_tags:
+        elif "Beam" in active_tags or "Lightning" in active_tags:
             score *= 1.2
             notes.append("✨ Bypasses Block")
 
     # B. Weakness & Resistance
     is_weak = False
     if tower['type'] in enemy.get('weakness_types', []): is_weak = True
-    for tag in tower_tags:
+    for tag in active_tags:
         if tag in enemy.get('weakness_types', []): is_weak = True
 
     if is_weak:
@@ -123,7 +157,7 @@ def calculate_single_score(enemy_id, tower_id):
 
     is_resist = False
     if tower['type'] in enemy.get('resistance_types', []): is_resist = True
-    for tag in tower_tags:
+    for tag in active_tags:
         if tag in enemy.get('resistance_types', []): is_resist = True
 
     if is_resist:
@@ -132,10 +166,10 @@ def calculate_single_score(enemy_id, tower_id):
 
     # C. Tactical Tags
     if "Invisible" in enemy_tags or "Stealth" in enemy_tags:
-        if "Stealth Reveal" in tower_tags:
+        if "Stealth Reveal" in active_tags:
             score *= 1.5
             notes.append("👁️ Reveals Stealth")
-        elif "Area" in tower_tags:
+        elif "Area" in active_tags:
             score *= 1.1
             notes.append("💥 AoE Hit")
         else:
@@ -143,7 +177,7 @@ def calculate_single_score(enemy_id, tower_id):
             notes.append("⚠️ Can't see")
 
     if "Swarm" in enemy_tags or "Splitter" in enemy_tags:
-        if "Area" in tower_tags or "Chain" in tower.get('role', ''):
+        if "Area" in active_tags or "Chain" in tower.get('role', ''):
             score *= 1.3
             notes.append("🌊 Anti-Swarm")
         elif "Single Target" in tower.get('role', ''):
@@ -226,14 +260,13 @@ if st.session_state.page == 'setup':
     st.title("⚙️ Vanguard Mission Control")
     st.caption(f"Configuring: {defaults.get('weekly_mode_name', 'Custom Week')}")
 
+    # --- SECTION 1: INVENTORY & THREATS ---
     col1, col2 = st.columns(2)
-
     with col1:
         st.subheader("1. Weekly Inventory")
         st.info("Select at least 9 towers.")
         all_tower_ids = list(towers_db.keys())
         format_tower = lambda x: f"{towers_db[x]['name']} ({towers_db[x]['type']})"
-
         selected_towers = st.multiselect("Available Towers", options=all_tower_ids,
                                          default=st.session_state.user_towers, format_func=format_tower)
 
@@ -250,6 +283,59 @@ if st.session_state.page == 'setup':
         selected_pool = st.multiselect("Enemy Pool", options=all_enemy_ids, default=st.session_state.weekly_enemy_pool,
                                        format_func=format_enemy)
         st.session_state.weekly_enemy_pool = selected_pool
+
+    st.divider()
+
+    # --- SECTION 2: CARD CONFIGURATION ---
+    st.subheader("3. Card Loadout (Tier 1 & 2)")
+    st.info("Configure the 4 active cards for Tier 1 and Tier 2 for each tower.")
+
+    # Iterate only through selected towers
+    for t_id in st.session_state.user_towers:
+        t_data = towers_db[t_id]
+
+        # Ensure session state structure exists for this tower
+        if t_id not in st.session_state.card_setup:
+            st.session_state.card_setup[t_id] = {"tier_1": [], "tier_2": []}
+
+        with st.expander(f"🃏 {t_data['name']} Configuration", expanded=False):
+            c_t1, c_t2 = st.columns(2)
+
+            # Get available cards for this tower
+            t1_options = [c['name'] for c in cards_db.get(t_id, {}).get(1, [])]
+            t2_options = [c['name'] for c in cards_db.get(t_id, {}).get(2, [])]
+
+            # Tier 1 Selector
+            with c_t1:
+                st.markdown("**Tier 1 Cards (Max 4)**")
+                current_t1 = st.session_state.card_setup[t_id].get("tier_1", [])
+                current_t1 = [c for c in current_t1 if c in t1_options]
+
+                sel_t1 = st.multiselect(
+                    "Select T1",
+                    options=t1_options,
+                    default=current_t1,
+                    key=f"{t_id}_t1",
+                    label_visibility="collapsed"
+                )
+                st.session_state.card_setup[t_id]["tier_1"] = sel_t1[:4]  # Enforce limit
+                if len(sel_t1) > 4: st.warning("Max 4 cards!")
+
+            # Tier 2 Selector
+            with c_t2:
+                st.markdown("**Tier 2 Cards (Max 4)**")
+                current_t2 = st.session_state.card_setup[t_id].get("tier_2", [])
+                current_t2 = [c for c in current_t2 if c in t2_options]
+
+                sel_t2 = st.multiselect(
+                    "Select T2",
+                    options=t2_options,
+                    default=current_t2,
+                    key=f"{t_id}_t2",
+                    label_visibility="collapsed"
+                )
+                st.session_state.card_setup[t_id]["tier_2"] = sel_t2[:4]
+                if len(sel_t2) > 4: st.warning("Max 4 cards!")
 
     st.markdown("---")
     _, c_btn, _ = st.columns([1, 2, 1])
@@ -301,15 +387,13 @@ elif st.session_state.page == 'main':
         if error:
             st.error(error)
         else:
-            # --- QUICK LINEUP SUMMARY (Restored!) ---
+            # --- QUICK LINEUP (Simple Format) ---
             st.subheader("📋 Mission Briefing")
 
-            # Build the 3 lines separately
             line1 = f"**Wave 1:** {' - '.join([towers_db[tid]['name'] for tid in best_loadout[0]])}"
             line2 = f"**Wave 2:** {' - '.join([towers_db[tid]['name'] for tid in best_loadout[1]])}"
             line3 = f"**Wave 3:** {' - '.join([towers_db[tid]['name'] for tid in best_loadout[2]])}"
 
-            # Use double newlines (\n\n) to force distinct lines in Markdown
             st.info(f"💡 **Quick Lineup:**\n\n{line1}\n\n{line2}\n\n{line3}")
 
             st.divider()

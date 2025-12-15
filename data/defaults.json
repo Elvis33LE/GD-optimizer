@@ -5,7 +5,57 @@
         "disruption_drone", "railgun", "hive", "gravity_vortex", "beam"
     ],
     "weekly_enemy_pool": [
-        "meteor_carapace_beetle", "bio_tick", "raging_ant_vanguard", "mutated_bat", "silk_hunter", "spikeshell_beetle",
-        "elite_mirage_moth", "elite_armored_insect"
-    ]
+        "meteor_carapace_beetle", "bio_tick", "raging_ant_vanguard", "mutated_bat",
+        "silk_hunter", "spikeshell_beetle", "elite_mirage_moth", "elite_armored_insect"
+    ],
+    "weekly_card_setup": {
+        "guardian": {
+            "tier_1": ["Volley Shot", "Bullets Boost", "Piercing Bullet", "Volley Shot +"],
+            "tier_2": ["Explosion Expansion", "Quick Charge", "Sustained Charge", "Penetration Boost"]
+        },
+        "sky_guard": {
+            "tier_1": ["Volley Missile", "Sky Guard Boost", "Explosion Spread", "Impact Reinforcement"],
+            "tier_2": ["Missile Amplification", "Ignition Amplification", "Thermal Warhead", "Strong Impact"]
+        },
+        "laser": {
+            "tier_1": ["Laser Amplification", "Stable Energy", "Laser Reflection", "Additional Sweep"],
+            "tier_2": ["Vulnerable Laser", "Slow Laser", "Energy Overload", "Tear Explosion"]
+        },
+        "disruption_drone": {
+            "tier_1": ["Field Amplification", "Field Duration", "Field Expansion", "Disruption Force"],
+            "tier_2": ["Disruption Burst", "Rewind Teleport", "Overcharged Disruption", "Quick Cooldown"]
+        },
+        "aeroblast": {
+            "tier_1": ["Powerful Blast", "Multiple Blast", "Impact Enhancement", "Shotgun Barrage"],
+            "tier_2": ["Extra Loading", "Wide Minefield", "Mine Shockwave", "Chain Explosion"]
+        },
+        "thunderbolt": {
+            "tier_1": ["Continuous Strike", "Swift Strike", "Lightning Boost", "Lightning Paralysis"],
+            "tier_2": ["Paralysis Extension", "Chain Expansion", "Paralyzing Shock", "Extra Strike"]
+        },
+        "beam": {
+            "tier_1": ["Beam Boost", "Efficient Beam", "Beam Refraction", "Damage Increase"],
+            "tier_2": ["Stacking Damage", "Refraction Pull", "Slaughtering Beam", "Extra Beam"]
+        },
+        "firewheel_drone": {
+            "tier_1": ["Firewheel Boost", "Size Boost", "Duration Extension", "Mini Drones"],
+            "tier_2": ["Killing Array", "Blazing Trail", "Killing Charge", "Combo Boost"]
+        },
+        "hive": {
+            "tier_1": ["Swarm Assault", "Rapid Barrage", "Dense Swarm", "Contact Pulse"],
+            "tier_2": ["Amplified Pulse", "Final Resonance", "Echo Upgrade II", "Wasp Evolution III"]
+        },
+        "railgun": {
+            "tier_1": ["Ammo Boost", "Shell Salvo", "Railgun Upgrade", "Basic Split"],
+            "tier_2": ["Piercing Enhancement", "Impact Spread", "Impact Boost", "Shell Crit Boost"]
+        },
+        "tesla_coil": {
+            "tier_1": ["Electro Boost", "Electro Chain", "Electro Acceleration", "Charge Expansion"],
+            "tier_2": ["Charge Destruction", "Enhanced Matrix", "Expanded Shockwave", "Charged Shock"]
+        },
+        "gravity_vortex": {
+            "tier_1": ["High Power Field", "Wide Field", "Extended Field", "Static Wormhole"],
+            "tier_2": ["Wormhole Expansion", "Black Hole Expansion", "Wormhole Enhancement", "Extra Field"]
+        }
+    }
 }
