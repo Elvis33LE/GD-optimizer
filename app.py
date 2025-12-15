@@ -2,7 +2,7 @@ import streamlit as st
 import json
 import base64
 import os
-import textwrap
+import textwrap  # <--- This was missing, causing the NameError
 
 # --- 1. SETUP & CONFIGURATION ---
 st.set_page_config(page_title="Vanguard 2.0: Knowledge Base", layout="wide")
@@ -48,19 +48,17 @@ if 'page' not in st.session_state:
 # Initialize Available Towers (Inventory)
 if 'user_towers' not in st.session_state:
     default_ids = defaults.get("available_towers", list(towers_db.keys())[:8])
-    # Validate IDs exist in DB
     valid_ids = [tid for tid in default_ids if tid in towers_db]
     st.session_state.user_towers = valid_ids
 
-# Initialize Weekly Enemy Pool (The 8 Enemies)
+# Initialize Weekly Enemy Pool
 if 'weekly_enemy_pool' not in st.session_state:
     default_pool = defaults.get("weekly_enemy_pool", list(enemies_db.keys())[:8])
     valid_pool = [eid for eid in default_pool if eid in enemies_db]
     st.session_state.weekly_enemy_pool = valid_pool
 
-# Initialize Active Waves (The 3 selected for calculation)
+# Initialize Active Waves
 if 'active_waves' not in st.session_state:
-    # Default to the first 3 of the weekly pool
     pool = st.session_state.weekly_enemy_pool
     st.session_state.active_waves = [
         pool[0] if len(pool) > 0 else list(enemies_db.keys())[0],
@@ -74,10 +72,10 @@ def calculate_score(enemy_id, tower_id):
     enemy = enemies_db[enemy_id]
     tower = towers_db[tower_id]
 
-    score = 50  # Base score
+    score = 50
     notes = []
 
-    # 1. Weakness Match (+25)
+    # 1. Weakness Match
     if tower['type'] in enemy.get('weakness_types', []):
         score += 25
         notes.append(f"⚡ Weak to {tower['type']}")
@@ -87,7 +85,7 @@ def calculate_score(enemy_id, tower_id):
             score += 15
             notes.append(f"🎯 {tag} Weakness")
 
-    # 2. Resistance Penalty (-30)
+    # 2. Resistance Penalty
     if tower['type'] in enemy.get('resistance_types', []):
         score -= 30
         notes.append(f"🛡️ Resists {tower['type']}")
@@ -97,9 +95,12 @@ def calculate_score(enemy_id, tower_id):
             score -= 20
             notes.append(f"🚫 Resists {tag}")
 
-    # 3. Tactical Tags
+    # 3. Tactical Tags & Immunities
+    enemy_tags = enemy.get('tags', [])
+    enemy_immunities = enemy.get('immunities', [])
+
     # Stealth
-    if "Invisible" in enemy.get('tags', []) or "Stealth" in enemy.get('tags', []):
+    if "Invisible" in enemy_tags or "Stealth" in enemy_tags:
         if "Stealth Reveal" in tower.get('damage_tags', []):
             score += 40
             notes.append("👁️ Reveals Stealth")
@@ -111,7 +112,7 @@ def calculate_score(enemy_id, tower_id):
             notes.append("⚠️ Misses Stealth")
 
     # Swarms
-    if "Swarm" in enemy.get('tags', []) or "Splitter" in enemy.get('tags', []):
+    if "Swarm" in enemy_tags or "Splitter" in enemy_tags:
         if "Area" in tower.get('damage_tags', []) or "Chain" in tower.get('role', ''):
             score += 20
             notes.append("🌊 Anti-Swarm")
@@ -119,10 +120,18 @@ def calculate_score(enemy_id, tower_id):
             score -= 10
             notes.append("⚠️ Poor vs Swarm")
 
-    # Shields / Projectile Blockers
-    if "Projectile Block" in enemy.get('tags', []):
+    # Immunities (New Logic)
+    if "Paralysis" in enemy_immunities and "Paralyze" in tower.get('damage_tags', []):
+        score -= 50
+        notes.append("⛔ Immune to Paralysis")
+
+    if "Slow" in enemy_immunities and "Slow" in tower.get('damage_tags', []):
+        score -= 30
+        notes.append("⛔ Immune to Slow")
+
+    if "Projectile Block" in enemy_tags:
         if "Projectile" in tower.get('damage_tags', []):
-            score -= 100  # Hard Countered
+            score -= 100
             notes.append("❌ BLOCKED")
         elif "Beam" in tower.get('damage_tags', []) or "Lightning" in tower.get('damage_tags', []):
             score += 20
@@ -155,7 +164,6 @@ if st.session_state.page == 'setup':
 
     col1, col2 = st.columns(2)
 
-    # 1. Tower Selection
     with col1:
         st.subheader("1. Weekly Inventory")
         st.info("Select available towers for this week.")
@@ -170,7 +178,6 @@ if st.session_state.page == 'setup':
         )
         st.session_state.user_towers = selected_towers
 
-    # 2. Enemy Pool Selection
     with col2:
         st.subheader("2. Weekly Threats (8 Max)")
         st.info("Select the 6 Normal + 2 Bosses active this week.")
@@ -184,7 +191,6 @@ if st.session_state.page == 'setup':
             format_func=format_enemy
         )
 
-        # Validation visual aid
         count = len(selected_pool)
         if count == 8:
             st.success(f"Perfect! {count} enemies selected.")
@@ -197,10 +203,8 @@ if st.session_state.page == 'setup':
     _, c_btn, _ = st.columns([1, 2, 1])
     with c_btn:
         if st.button("🚀 Enter Combat Calculator", type="primary", use_container_width=True):
-            # Pre-fill active waves if they are invalid (not in pool)
             pool = st.session_state.weekly_enemy_pool
             if pool:
-                # Ensure current selections are valid, else reset to first in pool
                 for i in range(3):
                     if st.session_state.active_waves[i] not in pool:
                         st.session_state.active_waves[i] = pool[0]
@@ -209,7 +213,6 @@ if st.session_state.page == 'setup':
 
 # --- 7. PAGE: MAIN CALCULATOR ---
 elif st.session_state.page == 'main':
-    # Sidebar
     with st.sidebar:
         st.header("Settings")
         if st.button("⚙️ Edit Weekly Setup", use_container_width=True):
@@ -232,7 +235,6 @@ elif st.session_state.page == 'main':
 
     st.title("🛡️ Vanguard Strategy Engine")
 
-    # Wave Selectors (Restricted to Weekly Pool)
     pool_options = st.session_state.weekly_enemy_pool
 
     if not pool_options:
@@ -243,7 +245,6 @@ elif st.session_state.page == 'main':
 
         for i, col in enumerate(cols):
             with col:
-                # Get current selection index safely
                 current_val = st.session_state.active_waves[i]
                 try:
                     idx = pool_options.index(current_val)
@@ -261,25 +262,23 @@ elif st.session_state.page == 'main':
 
         st.divider()
 
-        # Calculation & Render
         for i, enemy_id in enumerate(st.session_state.active_waves):
             enemy = enemies_db[enemy_id]
 
-            # Header
             st.markdown(f"### Wave {i + 1}: **{enemy['name']}**")
 
-            # Context Tags
             tags = [f"`{t}`" for t in enemy.get('tags', [])]
             weak = [f"**{w}**" for w in enemy.get('weakness_types', [])]
             res = [f"~~{r}~~" for r in enemy.get('resistance_types', [])]
+            immu = [f"🚫 {im}" for im in enemy.get('immunities', [])]
 
             info = f"{enemy['faction']}"
             if tags: info += f" | {' '.join(tags)}"
             if weak: info += f" | Weak: {' '.join(weak)}"
             if res: info += f" | Resist: {' '.join(res)}"
+            if immu: info += f" | Immunities: {' '.join(immu)}"
             st.caption(info)
 
-            # Scoring
             scored_towers = []
             for t_id in st.session_state.user_towers:
                 score, note = calculate_score(enemy_id, t_id)
@@ -293,7 +292,6 @@ elif st.session_state.page == 'main':
             scored_towers.sort(key=lambda x: x['score'], reverse=True)
             top_picks = scored_towers[:3]
 
-            # Cards
             c_cols = st.columns(3)
             for idx, item in enumerate(top_picks):
                 t_data = item['data']
@@ -305,29 +303,30 @@ elif st.session_state.page == 'main':
                 b64_svg = base64.b64encode(icon_svg.encode('utf-8')).decode("utf-8")
 
                 with c_cols[idx]:
-                    # We use textwrap.dedent to remove the indentation so Streamlit renders it as HTML, not code.
+                    # FIX: Using textwrap to handle indentation properly
                     html_code = textwrap.dedent(f"""
-                                    <div style="
-                                        background-color: #262730; 
-                                        border: 1px solid #444; 
-                                        border-bottom: 3px solid {score_color}; 
-                                        border-radius: 8px; 
-                                        padding: 10px; 
-                                        text-align: center; 
-                                        height: 200px;
-                                        display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+                    <div style="
+                        background-color: #262730; 
+                        border: 1px solid #444; 
+                        border-bottom: 3px solid {score_color}; 
+                        border-radius: 8px; 
+                        padding: 10px; 
+                        text-align: center; 
+                        height: 200px;
+                        display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
 
-                                        <img src="data:image/svg+xml;base64,{b64_svg}" style="width:50px; height:50px; opacity:0.9;">
+                        <img src="data:image/svg+xml;base64,{b64_svg}" style="width:50px; height:50px; opacity:0.9;">
 
-                                        <div style="margin-top:5px;">
-                                            <div style="font-weight:bold; color: #fff; font-size:1.1em;">{t_data['name']}</div>
-                                            <div style="font-size:0.8em; color: {color};">{t_data['type']} • {t_data['role']}</div>
-                                        </div>
+                        <div style="margin-top:5px;">
+                            <div style="font-weight:bold; color: #fff; font-size:1.1em;">{t_data['name']}</div>
+                            <div style="font-size:0.8em; color: {color};">{t_data['type']} • {t_data['role']}</div>
+                        </div>
 
-                                        <div style="width:100%;">
-                                            <div style="font-size:1.2em; font-weight:900; color:{score_color};">{score} pts</div>
-                                            <div style="font-size:0.7em; color: #aaa; line-height:1.2; min-height:30px;">{item['note']}</div>
-                                        </div>
-                                    </div>
-                                    """)
+                        <div style="width:100%;">
+                            <div style="font-size:1.2em; font-weight:900; color:{score_color};">{score} pts</div>
+                            <div style="font-size:0.7em; color: #aaa; line-height:1.2; min-height:30px;">{item['note']}</div>
+                        </div>
+                    </div>
+                    """)
                     st.markdown(html_code, unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
