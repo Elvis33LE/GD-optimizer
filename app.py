@@ -3,7 +3,6 @@ import json
 import os
 import textwrap
 from itertools import combinations
-import base64
 
 # --- 1. SETUP & CONFIGURATION ---
 st.set_page_config(page_title="Vanguard 2.0: Strategy Engine", layout="wide")
@@ -95,6 +94,7 @@ user_conf = load_user_config()
 if 'page' not in st.session_state:
     st.session_state.page = 'setup'
 
+# 1. User Towers
 if 'user_towers' not in st.session_state:
     if user_conf and 'user_towers' in user_conf:
         st.session_state.user_towers = user_conf['user_towers']
@@ -102,6 +102,7 @@ if 'user_towers' not in st.session_state:
         default_ids = defaults.get("available_towers", list(towers_db.keys())[:9])
         st.session_state.user_towers = [tid for tid in default_ids if tid in towers_db]
 
+# 2. Enemy Pool
 if 'weekly_enemy_pool' not in st.session_state:
     if user_conf and 'weekly_enemy_pool' in user_conf:
         st.session_state.weekly_enemy_pool = user_conf['weekly_enemy_pool']
@@ -109,12 +110,14 @@ if 'weekly_enemy_pool' not in st.session_state:
         default_pool = defaults.get("weekly_enemy_pool", list(enemies_db.keys())[:8])
         st.session_state.weekly_enemy_pool = [eid for eid in default_pool if eid in enemies_db]
 
+# 3. Card Setup
 if 'card_setup' not in st.session_state:
     if user_conf and 'card_setup' in user_conf:
         st.session_state.card_setup = user_conf['card_setup']
     else:
         st.session_state.card_setup = defaults.get("weekly_card_setup", {})
 
+# 4. Active Waves
 if 'active_waves' not in st.session_state:
     pool = st.session_state.weekly_enemy_pool
     waves = []
@@ -157,17 +160,16 @@ def get_active_chains_text(tower_id):
     if tower_id not in st.session_state.card_setup: return ""
 
     setup = st.session_state.card_setup[tower_id]
-    selected_names = set(setup.get("tier_1", []) + setup.get("tier_2", []))
+    # Filter out None values before creating the set
+    selected_names = set([c for c in (setup.get("tier_1", []) + setup.get("tier_2", [])) if c])
 
-    chains = {}  # "Chain Name" -> Max Step
+    chains = {}
 
-    # Iterate through all available cards for this tower to find what matches selection
     for tier in [1, 2]:
         for card in cards_db.get(tower_id, {}).get(tier, []):
             if card['name'] in selected_names and 'chain_group' in card:
                 group = card['chain_group']
                 step = card['chain_step']
-                # Keep highest step found
                 if group not in chains or step > chains[group]:
                     chains[group] = step
 
@@ -187,21 +189,15 @@ def calculate_single_score(enemy_id, tower_id):
     score = 100.0
     notes = []
 
-    # --- 1. SETUP BONUSES (New!) ---
-    # Add points if the tower has active Chains in the setup
+    # --- 1. SETUP BONUSES (Chains) ---
     active_chains_text = get_active_chains_text(tower_id)
     if active_chains_text:
-        # Give a flat bonus for having an upgraded chain
-        # e.g., "Explosion Chain (II)" adds 15 points
-        chain_count = active_chains_text.count("(")  # Count how many chains are active
+        chain_count = active_chains_text.count("(")
         chain_bonus = chain_count * 15
         score += chain_bonus
-        # We don't add a note here because the badge shows it
 
-    # --- 2. MATCHUP MULTIPLIERS ---
+        # --- 2. MATCHUP MULTIPLIERS ---
     active_tags = set(tower.get('damage_tags', []))
-
-    # (Card tag logic...)
     if tower_id in st.session_state.card_setup:
         setup = st.session_state.card_setup[tower_id]
         all_selected_card_names = setup.get("tier_1", []) + setup.get("tier_2", [])
@@ -212,10 +208,9 @@ def calculate_single_score(enemy_id, tower_id):
             if any(x in card_name for x in ["Slow", "Stasis"]): active_tags.add("Slow")
             if any(x in card_name for x in ["Stealth Reveal", "Ignition"]): active_tags.add("Stealth Reveal")
 
-    # Immunities (Multipliers apply to the NEW score base)
+    # Immunities
     enemy_immunities = enemy.get('immunities', [])
     enemy_tags = enemy.get('tags', [])
-
     if "Paralysis" in enemy_immunities and "Paralyze" in active_tags:
         score *= 0.1
         notes.append("⛔ Immune: Paralysis")
@@ -230,7 +225,7 @@ def calculate_single_score(enemy_id, tower_id):
             score *= 1.2
             notes.append("✨ Bypasses Block")
 
-    # Weakness (x1.5)
+    # Weakness
     is_weak = False
     if tower['type'] in enemy.get('weakness_types', []): is_weak = True
     for tag in active_tags:
@@ -239,7 +234,7 @@ def calculate_single_score(enemy_id, tower_id):
         score *= 1.5
         notes.append("⚡ Weakness")
 
-    # Resistance (x0.5)
+    # Resistance
     is_resist = False
     if tower['type'] in enemy.get('resistance_types', []): is_resist = True
     for tag in active_tags:
@@ -251,7 +246,7 @@ def calculate_single_score(enemy_id, tower_id):
     # Tactical Bonuses
     if "Invisible" in enemy_tags or "Stealth" in enemy_tags:
         if "Stealth Reveal" in active_tags:
-            score += 40  # Flat bonus for utility
+            score += 40
             notes.append("👁️ Reveals")
         elif "Area" in active_tags:
             score += 10
@@ -407,16 +402,18 @@ if st.session_state.page == 'setup':
             st.session_state.card_setup[t_id] = {"tier_1": [], "tier_2": []}
 
         with st.expander(f"🃏 {t_data['name']} Configuration", expanded=False):
-            t1_opts = [c['name'] for c in cards_db.get(t_id, {}).get(1, [])]
-            t2_opts = [c['name'] for c in cards_db.get(t_id, {}).get(2, [])]
+            # Combine Tier 1 and 2 options into a single pool to allow free selection
+            t1_list = [c['name'] for c in cards_db.get(t_id, {}).get(1, [])]
+            t2_list = [c['name'] for c in cards_db.get(t_id, {}).get(2, [])]
+            all_opts = sorted(list(set(t1_list + t2_list)))  # Unique list of all available cards
 
             st.markdown("**Tier 1 Slots**")
             cols_t1 = st.columns(4)
             current_t1 = []
             for i in range(4):
                 with cols_t1[i]:
-                    idx = get_opt_idx(t1_opts, get_default_slot(t_id, 1, i))
-                    val = st.selectbox(f"T1-{i + 1}", options=t1_opts, index=idx, key=f"{t_id}_t1_{i}",
+                    idx = get_opt_idx(all_opts, get_default_slot(t_id, 1, i))
+                    val = st.selectbox(f"T1-{i + 1}", options=all_opts, index=idx, key=f"{t_id}_t1_{i}",
                                        label_visibility="collapsed")
                     current_t1.append(val)
             st.session_state.card_setup[t_id]["tier_1"] = current_t1
@@ -426,8 +423,8 @@ if st.session_state.page == 'setup':
             current_t2 = []
             for i in range(4):
                 with cols_t2[i]:
-                    idx = get_opt_idx(t2_opts, get_default_slot(t_id, 2, i))
-                    val = st.selectbox(f"T2-{i + 1}", options=t2_opts, index=idx, key=f"{t_id}_t2_{i}",
+                    idx = get_opt_idx(all_opts, get_default_slot(t_id, 2, i))
+                    val = st.selectbox(f"T2-{i + 1}", options=all_opts, index=idx, key=f"{t_id}_t2_{i}",
                                        label_visibility="collapsed")
                     current_t2.append(val)
             st.session_state.card_setup[t_id]["tier_2"] = current_t2
@@ -553,7 +550,7 @@ elif st.session_state.page == 'main':
                             icon_svg = get_svg(t_data.get('icon', 'beam'), color)
                             b64_svg = base64.b64encode(icon_svg.encode('utf-8')).decode("utf-8")
 
-                            active_chains = get_active_chains_text(t_id)  # <--- NEW: Get Chain Text
+                            active_chains = get_active_chains_text(t_id)
 
                             html_code = textwrap.dedent(f"""
                             <div style="background-color: #1e1e1e; border: 1px solid #333; border-radius: 6px; padding: 10px;">
