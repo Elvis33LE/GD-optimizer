@@ -67,77 +67,87 @@ if 'active_waves' not in st.session_state:
 
 # --- 4. SCORING LOGIC ENGINE ---
 def calculate_single_score(enemy_id, tower_id):
-    """Calculates score for ONE tower against ONE enemy."""
     enemy = enemies_db[enemy_id]
     tower = towers_db[tower_id]
 
-    score = 50
+    # Start with a "Base Effectiveness" of 100%
+    score = 100.0
     notes = []
 
-    # 1. Weakness Match
-    if tower['type'] in enemy.get('weakness_types', []):
-        score += 25
-        notes.append(f"⚡ Weak to {tower['type']}")
+    # --- 1. HARD COUNTERS (Multipliers) ---
+    # Immunities usually mean 0 damage or useless utility
+    enemy_immunities = enemy.get('immunities', [])
+    enemy_tags = enemy.get('tags', [])
 
+    if "Paralysis" in enemy_immunities and "Paralyze" in tower.get('damage_tags', []):
+        score *= 0.1  # 90% penalty (useless)
+        notes.append("⛔ Paralyze Immune")
+
+    if "Slow" in enemy_immunities and "Slow" in tower.get('damage_tags', []):
+        score *= 0.5  # 50% penalty (utility loss)
+        notes.append("⛔ Slow Immune")
+
+    if "Projectile Block" in enemy_tags:
+        if "Projectile" in tower.get('damage_tags', []):
+            score *= 0.0  # 100% penalty (BLOCKED)
+            notes.append("❌ BLOCKED")
+        elif "Beam" in tower.get('damage_tags', []) or "Lightning" in tower.get('damage_tags', []):
+            score *= 1.2  # 20% bonus for bypassing
+            notes.append("✨ Bypasses Block")
+
+    # --- 2. WEAKNESSES & RESISTANCES (Game Math) ---
+    # Game usually says "Takes 50% more DMG". Let's model that.
+
+    # Weakness
+    is_weak = False
+    if tower['type'] in enemy.get('weakness_types', []):
+        is_weak = True
     for tag in tower.get('damage_tags', []):
         if tag in enemy.get('weakness_types', []):
-            score += 15
-            notes.append(f"🎯 {tag} Weakness")
+            is_weak = True
 
-    # 2. Resistance Penalty
+    if is_weak:
+        score *= 1.5  # +50% Effectiveness
+        notes.append("⚡ Weakness (+50%)")
+
+    # Resistance
+    is_resist = False
     if tower['type'] in enemy.get('resistance_types', []):
-        score -= 30
-        notes.append(f"🛡️ Resists {tower['type']}")
-
+        is_resist = True
     for tag in tower.get('damage_tags', []):
         if tag in enemy.get('resistance_types', []):
-            score -= 20
-            notes.append(f"🚫 Resists {tag}")
+            is_resist = True
 
-    # 3. Tactical Tags & Immunities
-    enemy_tags = enemy.get('tags', [])
-    enemy_immunities = enemy.get('immunities', [])
+    if is_resist:
+        score *= 0.5  # -50% Effectiveness
+        notes.append("🛡️ Resistance (-50%)")
+
+    # --- 3. TACTICAL UTILITY (Flat Bonuses) ---
+    # These are situational bonuses, so flat points still make sense here
+    # to represent "Utility" rather than raw "Damage".
 
     # Stealth
     if "Invisible" in enemy_tags or "Stealth" in enemy_tags:
         if "Stealth Reveal" in tower.get('damage_tags', []):
-            score += 40
+            score += 50  # Massive utility bonus
             notes.append("👁️ Reveals Stealth")
         elif "Area" in tower.get('damage_tags', []):
-            score += 10
-            notes.append("💥 AoE hits Stealth")
+            score += 10  # Minor bonus
+            notes.append("💥 AoE Hit")
         else:
-            score -= 20
-            notes.append("⚠️ Misses Stealth")
+            score -= 30  # Big penalty (can't hit)
+            notes.append("⚠️ Can't see")
 
     # Swarms
     if "Swarm" in enemy_tags or "Splitter" in enemy_tags:
         if "Area" in tower.get('damage_tags', []) or "Chain" in tower.get('role', ''):
-            score += 20
+            score *= 1.3  # 30% effectiveness boost
             notes.append("🌊 Anti-Swarm")
         elif "Single Target" in tower.get('role', ''):
-            score -= 10
-            notes.append("⚠️ Poor vs Swarm")
+            score *= 0.7  # 30% penalty
+            notes.append("⚠️ Overwhelmed")
 
-    # Immunities
-    if "Paralysis" in enemy_immunities and "Paralyze" in tower.get('damage_tags', []):
-        score -= 50
-        notes.append("⛔ Immune to Paralysis")
-
-    if "Slow" in enemy_immunities and "Slow" in tower.get('damage_tags', []):
-        score -= 30
-        notes.append("⛔ Immune to Slow")
-
-    if "Projectile Block" in enemy_tags:
-        if "Projectile" in tower.get('damage_tags', []):
-            score -= 100
-            notes.append("❌ BLOCKED")
-        elif "Beam" in tower.get('damage_tags', []) or "Lightning" in tower.get('damage_tags', []):
-            score += 20
-            notes.append("✨ Bypasses Block")
-
-    return score, ", ".join(notes)
-
+    return int(score), ", ".join(notes)
 
 def solve_optimal_loadout(wave_enemies, inventory_towers):
     """
