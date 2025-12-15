@@ -3,7 +3,6 @@ import json
 import os
 import textwrap
 from itertools import combinations
-import base64
 
 # --- 1. SETUP & CONFIGURATION ---
 st.set_page_config(page_title="Vanguard 2.0: Strategy Engine", layout="wide")
@@ -38,14 +37,10 @@ def load_data():
     enemies_dict = {e['id']: e for e in enemies}
 
     # Process Synergies from Cards
-    # We group them by the pair of towers they affect.
-    # Structure: { frozenset({'tower_a', 'tower_b'}): [card_data_1, card_data_2] }
     synergy_map = {}
     for c in cards:
         if c.get('type') == 'Combo' and 'combo_partner' in c:
-            # Create a unique key for the pair (order doesn't matter)
             pair_key = frozenset({c['tower_id'], c['combo_partner']})
-
             if pair_key not in synergy_map:
                 synergy_map[pair_key] = []
             synergy_map[pair_key].append(c)
@@ -78,7 +73,6 @@ if 'weekly_enemy_pool' not in st.session_state:
 
 if 'active_waves' not in st.session_state:
     pool = st.session_state.weekly_enemy_pool
-    # Default to first 3 available, or fill with duplicates if not enough
     waves = []
     if pool:
         waves = [pool[0]] * 3
@@ -88,7 +82,6 @@ if 'active_waves' not in st.session_state:
 
 
 # --- 4. SCORING ENGINE ---
-
 def calculate_single_score(enemy_id, tower_id):
     """Calculates Base Effectiveness (Level 1 Multipliers)."""
     enemy = enemies_db[enemy_id]
@@ -118,8 +111,7 @@ def calculate_single_score(enemy_id, tower_id):
             score *= 1.2
             notes.append("✨ Bypasses Block")
 
-    # B. Weakness & Resistance (Game Math)
-    # Weakness = 1.5x (50% Bonus)
+    # B. Weakness & Resistance
     is_weak = False
     if tower['type'] in enemy.get('weakness_types', []): is_weak = True
     for tag in tower_tags:
@@ -129,7 +121,6 @@ def calculate_single_score(enemy_id, tower_id):
         score *= 1.5
         notes.append("⚡ Weakness (+50%)")
 
-    # Resistance = 0.5x (50% Penalty)
     is_resist = False
     if tower['type'] in enemy.get('resistance_types', []): is_resist = True
     for tag in tower_tags:
@@ -163,14 +154,9 @@ def calculate_single_score(enemy_id, tower_id):
 
 
 def solve_optimal_loadout(wave_enemies, inventory_towers):
-    """
-    Finds the BEST distribution of 9 unique towers (3 per wave).
-    Now uses DYNAMIC SYNERGY data from cards.json.
-    """
     if len(inventory_towers) < 9:
         return None, "Error: You need at least 9 towers in inventory to fill 3 waves!"
 
-    # 1. Pre-calculate base scores
     scores_matrix = []
     for enemy_id in wave_enemies:
         wave_scores = {}
@@ -179,7 +165,6 @@ def solve_optimal_loadout(wave_enemies, inventory_towers):
             wave_scores[t_id] = s
         scores_matrix.append(wave_scores)
 
-    # 2. Heuristic: Pick top 9 towers
     tower_utility = {}
     for t_id in inventory_towers:
         tower_utility[t_id] = sum(scores_matrix[w][t_id] for w in range(3))
@@ -189,7 +174,6 @@ def solve_optimal_loadout(wave_enemies, inventory_towers):
     best_total = -float('inf')
     best_allocation = None
 
-    # 3. Combinatorial Solver with JSON Synergies
     for w1_set in combinations(top_9, 3):
         remaining_6 = [x for x in top_9 if x not in w1_set]
 
@@ -199,22 +183,15 @@ def solve_optimal_loadout(wave_enemies, inventory_towers):
             current_sets = [w1_set, w2_set, w3_set]
             current_score = 0
 
-            # Score this allocation
             for wave_idx, tower_set in enumerate(current_sets):
-                # A. Base Score
                 wave_raw_score = sum(scores_matrix[wave_idx][t] for t in tower_set)
-
-                # B. Synergy Bonus from JSON
-                # Logic: Score 10 = +25% (1.25x), Score 1 = +2.5% (1.025x)
-                # Formula: Multiplier += (Score * 0.025)
                 multiplier = 1.0
 
                 for pair in combinations(tower_set, 2):
                     key = frozenset(pair)
                     if key in synergy_db:
-                        # There might be multiple cards for one pair (A->B and B->A)
                         for card in synergy_db[key]:
-                            rating = card.get('score', 5)  # Default to 5 if missing
+                            rating = card.get('score', 5)
                             bonus = rating * 0.025
                             multiplier += bonus
 
@@ -229,7 +206,6 @@ def solve_optimal_loadout(wave_enemies, inventory_towers):
 
 # --- 5. VISUAL ASSETS ---
 def get_svg(icon_name, color):
-    # (Same simple SVG logic as before)
     paths = {
         "tesla": f'<circle cx="50" cy="85" r="15" fill="{color}" opacity="0.3"/><path d="M50,25 L30,5 M50,25 L70,5" stroke="#fff" stroke-width="2"/><circle cx="50" cy="50" r="20" fill="none" stroke="{color}" stroke-width="4"/>',
         "skyguard": f'<rect x="30" y="40" width="15" height="30" fill="{color}"/><rect x="55" y="40" width="15" height="30" fill="{color}"/><path d="M20,80 L80,80" stroke="{color}" stroke-width="4"/>',
@@ -258,12 +234,8 @@ if st.session_state.page == 'setup':
         all_tower_ids = list(towers_db.keys())
         format_tower = lambda x: f"{towers_db[x]['name']} ({towers_db[x]['type']})"
 
-        selected_towers = st.multiselect(
-            "Available Towers",
-            options=all_tower_ids,
-            default=st.session_state.user_towers,
-            format_func=format_tower
-        )
+        selected_towers = st.multiselect("Available Towers", options=all_tower_ids,
+                                         default=st.session_state.user_towers, format_func=format_tower)
 
         if len(selected_towers) < 9:
             st.error(f"❌ Selected {len(selected_towers)}/9 required.")
@@ -275,13 +247,8 @@ if st.session_state.page == 'setup':
         st.subheader("2. Weekly Threats")
         all_enemy_ids = list(enemies_db.keys())
         format_enemy = lambda x: f"{'👑 ' if enemies_db[x]['type'] == 'Boss' else '👾 '}{enemies_db[x]['name']}"
-
-        selected_pool = st.multiselect(
-            "Enemy Pool",
-            options=all_enemy_ids,
-            default=st.session_state.weekly_enemy_pool,
-            format_func=format_enemy
-        )
+        selected_pool = st.multiselect("Enemy Pool", options=all_enemy_ids, default=st.session_state.weekly_enemy_pool,
+                                       format_func=format_enemy)
         st.session_state.weekly_enemy_pool = selected_pool
 
     st.markdown("---")
@@ -299,7 +266,6 @@ elif st.session_state.page == 'main':
         if st.button("⚙️ Edit Weekly Setup", use_container_width=True):
             st.session_state.page = 'setup'
             st.rerun()
-
         st.divider()
         st.subheader("Active Inventory")
         for t_id in st.session_state.user_towers:
@@ -329,32 +295,34 @@ elif st.session_state.page == 'main':
 
         st.divider()
 
-        # --- OPTIMIZER ---
         with st.spinner("Analyzing enemy data & synergy matrices..."):
-            best_loadout, error = solve_optimal_loadout(
-                st.session_state.active_waves,
-                st.session_state.user_towers
-            )
+            best_loadout, error = solve_optimal_loadout(st.session_state.active_waves, st.session_state.user_towers)
 
         if error:
             st.error(error)
         else:
-            # --- RESULTS ---
-            st.subheader("📋 Optimal Squad Assignment")
+            # --- QUICK LINEUP SUMMARY (Restored!) ---
+            st.subheader("📋 Mission Briefing")
+            st.info("💡 **Quick Lineup:**\n\n" +
+                    "\n".join([
+                        f"**Wave {i + 1}** vs {enemies_db[st.session_state.active_waves[i]]['name']}: " +
+                        ", ".join([towers_db[tid]['name'] for tid in best_loadout[i]])
+                        for i in range(3)
+                    ]))
 
+            st.divider()
+
+            # --- DETAILED RESULTS ---
             for i, enemy_id in enumerate(st.session_state.active_waves):
                 enemy = enemies_db[enemy_id]
                 wave_towers = best_loadout[i]
 
-                # --- WAVE CONTAINER ---
                 with st.container(border=True):
-                    # Header
                     c_head, c_tags = st.columns([1, 2])
                     with c_head:
                         st.markdown(f"#### Wave {i + 1}: {enemy['name']}")
                         st.caption(f"Faction: {enemy['faction']}")
                     with c_tags:
-                        # Badges
                         tags = [f"`{t}`" for t in enemy.get('tags', [])]
                         if tags: st.markdown(" ".join(tags))
 
@@ -366,7 +334,6 @@ elif st.session_state.page == 'main':
 
                     st.divider()
 
-                    # --- ACTIVE SYNERGIES CHECK ---
                     active_combos = []
                     for pair in combinations(wave_towers, 2):
                         key = frozenset(pair)
@@ -380,36 +347,22 @@ elif st.session_state.page == 'main':
                             score = c.get('score', 5)
                             color = "green" if score >= 8 else "orange"
                             st.markdown(f"- :{color}[**{c['name']}**] (Rating: {score}/10): {c['description']}")
-                        st.markdown("")  # Spacing
+                        st.markdown("")
 
-                    # --- TOWER CARDS ---
                     t_cols = st.columns(3)
-                    # Sort towers by raw score for this enemy
-                    sorted_towers = sorted(
-                        wave_towers,
-                        key=lambda tid: calculate_single_score(enemy_id, tid)[0],
-                        reverse=True
-                    )
+                    sorted_towers = sorted(wave_towers, key=lambda tid: calculate_single_score(enemy_id, tid)[0],
+                                           reverse=True)
 
                     for idx, t_id in enumerate(sorted_towers):
                         with t_cols[idx]:
                             t_data = towers_db[t_id]
                             score, note = calculate_single_score(enemy_id, t_id)
-
                             color = TYPE_COLORS.get(t_data['type'], "#fff")
                             icon_svg = get_svg(t_data.get('icon', 'beam'), color)
                             b64_svg = base64.b64encode(icon_svg.encode('utf-8')).decode("utf-8")
 
-                            # Native HTML card for best visuals
                             html_code = textwrap.dedent(f"""
-                            <div style="
-                                background-color: #1e1e1e; 
-                                border: 1px solid #333; 
-                                border-radius: 6px; 
-                                padding: 10px; 
-                                display: flex; 
-                                align-items: center;
-                                gap: 10px;">
+                            <div style="background-color: #1e1e1e; border: 1px solid #333; border-radius: 6px; padding: 10px; display: flex; align-items: center; gap: 10px;">
                                 <img src="data:image/svg+xml;base64,{b64_svg}" style="width:40px; height:40px;">
                                 <div>
                                     <div style="font-weight:bold; color:#fff; font-size:0.95em;">{t_data['name']}</div>
