@@ -295,12 +295,11 @@ elif st.session_state.page == 'main':
         else:
             # --- MISSION BRIEFING ---
             st.subheader("📋 Optimal Squad Assignment")
-            st.info("💡 Each tower is used exactly ONCE across all 3 waves.")
 
             for i, wave_towers in enumerate(best_loadout):
                 enemy = enemies_db[st.session_state.active_waves[i]]
                 names = [towers_db[tid]['name'] for tid in wave_towers]
-                st.markdown(f"**Wave {i + 1} vs {enemy['name']}:** " + " + ".join(names))
+                st.markdown(f"**Wave {i + 1}:** " + " + ".join(names))
 
             st.markdown("<br>", unsafe_allow_html=True)
 
