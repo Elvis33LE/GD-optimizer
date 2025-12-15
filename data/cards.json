@@ -892,6 +892,16 @@
     "chain_step": 2,
     "score": 8
   },
+    {
+    "tower_id": "thunderbolt",
+    "tier": 2,
+    "type": "Chain",
+    "name": "Chain Strike",
+    "description": "Enemies hit by Chain Lightning have a 25% chance to trigger a Small Lightning Strike",
+    "chain_group": "Chain Lightning",
+    "chain_step": 2,
+    "score": 8
+  },
   {
     "tower_id": "thunderbolt",
     "tier": 2,
