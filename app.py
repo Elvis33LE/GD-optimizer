@@ -441,7 +441,7 @@ if st.session_state.page == 'setup':
 
     st.markdown("---")
     _, c_btn, _ = st.columns([1, 2, 1])
-        with c_btn:
+    with c_btn:
         valid_towers = len(st.session_state.user_towers) >= 9
         valid_enemies = len(st.session_state.weekly_enemy_pool) > 0
         
@@ -628,4 +628,4 @@ elif st.session_state.page == 'main':
         except Exception as e:
             st.error(f"⚠️ Calculation Error: {str(e)}")
             st.caption("Try going back to Setup and resetting defaults.")
-
+            
