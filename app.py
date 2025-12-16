@@ -28,10 +28,25 @@ TYPE_COLORS = {
 # --- 2. DATA LOADING & PERSISTENCE ---
 @st.cache_data
 def load_data():
-    with open(TOWERS_FILE, 'r') as f: towers = json.load(f)
-    with open(ENEMIES_FILE, 'r') as f: enemies = json.load(f)
-    with open(CARDS_FILE, 'r') as f: cards = json.load(f)
+    # Load Towers
+    if os.path.exists(TOWERS_FILE):
+        with open(TOWERS_FILE, 'r') as f: towers = json.load(f)
+    else:
+        towers = {} # Safety fallback
+
+    # Load Enemies
+    if os.path.exists(ENEMIES_FILE):
+        with open(ENEMIES_FILE, 'r') as f: enemies = json.load(f)
+    else:
+        # Emergency Enemy Fallback to prevent crash
+        enemies = [{"id": "dummy_enemy", "name": "Training Dummy", "type": "Normal", "tags": [], "weakness_types": [], "resistance_types": []}]
     
+    # Load Cards
+    if os.path.exists(CARDS_FILE):
+        with open(CARDS_FILE, 'r') as f: cards = json.load(f)
+    else:
+        cards = []
+
     enemies_dict = {e['id']: e for e in enemies}
     
     # Process Synergies & Card Lookup
@@ -88,10 +103,7 @@ user_conf = load_user_config()
 
 # 1. Page State
 if 'page' not in st.session_state:
-    if user_conf and 'page' in user_conf:
-        st.session_state.page = user_conf['page']
-    else:
-        st.session_state.page = 'setup'
+    st.session_state.page = user_conf['page'] if (user_conf and 'page' in user_conf) else 'setup'
 
 # 2. User Towers
 if 'user_towers' not in st.session_state:
@@ -101,33 +113,34 @@ if 'user_towers' not in st.session_state:
         default_ids = defaults.get("available_towers", list(towers_db.keys())[:9])
         st.session_state.user_towers = [tid for tid in default_ids if tid in towers_db]
 
-# 3. Enemy Pool
+# 3. Enemy Pool (Ensure not empty)
 if 'weekly_enemy_pool' not in st.session_state:
-    if user_conf and 'weekly_enemy_pool' in user_conf:
+    if user_conf and 'weekly_enemy_pool' in user_conf and user_conf['weekly_enemy_pool']:
         st.session_state.weekly_enemy_pool = user_conf['weekly_enemy_pool']
     else:
-        default_pool = defaults.get("weekly_enemy_pool", list(enemies_db.keys())[:8])
-        st.session_state.weekly_enemy_pool = [eid for eid in default_pool if eid in enemies_db]
+        default_pool = defaults.get("weekly_enemy_pool", [])
+        valid_pool = [eid for eid in default_pool if eid in enemies_db]
+        # Fallback if defaults are broken
+        if not valid_pool: 
+            valid_pool = list(enemies_db.keys())[:8]
+        st.session_state.weekly_enemy_pool = valid_pool
 
 # 4. Card Setup
 if 'card_setup' not in st.session_state:
-    if user_conf and 'card_setup' in user_conf:
-        st.session_state.card_setup = user_conf['card_setup']
-    else:
-        st.session_state.card_setup = defaults.get("weekly_card_setup", {})
+    st.session_state.card_setup = user_conf['card_setup'] if (user_conf and 'card_setup' in user_conf) else defaults.get("weekly_card_setup", {})
 
-# 5. Active Waves (ENSURE VALIDITY)
-if 'active_waves' not in st.session_state or not st.session_state.active_waves:
-    if user_conf and 'active_waves' in user_conf and user_conf['active_waves']:
+# 5. Active Waves (CRITICAL FIX: Ensure exactly 3 valid items)
+if 'active_waves' not in st.session_state:
+    if user_conf and 'active_waves' in user_conf and len(user_conf['active_waves']) == 3:
         st.session_state.active_waves = user_conf['active_waves']
     else:
-        # Fallback to pool defaults if empty
         pool = st.session_state.weekly_enemy_pool
-        waves = []
-        if pool:
-            waves = [pool[0]] * 3
-            for i in range(min(len(pool), 3)):
-                waves[i] = pool[i]
+        # Safety: If pool is empty (shouldn't happen due to #3), use the first enemy in DB
+        safe_fill = pool[0] if pool else list(enemies_db.keys())[0]
+        
+        waves = [safe_fill] * 3
+        for i in range(min(len(pool), 3)):
+            waves[i] = pool[i]
         st.session_state.active_waves = waves
 
 # 6. Mode 2vs1
@@ -259,6 +272,10 @@ def calculate_single_score(enemy_id, tower_id):
 def solve_optimal_loadout(wave_enemies, inventory_towers, mode_2vs1=False):
     if len(inventory_towers) < 9:
         return None, None, "Error: You need at least 9 towers in inventory to fill 3 waves!"
+    
+    # Safety Check: Ensure wave_enemies has 3 items
+    if len(wave_enemies) < 3:
+        return None, None, "Error: Wave data corrupted. Please reset in Setup."
 
     setup_conditions = analyze_user_setup(st.session_state.card_setup)
     scores_matrix = []
@@ -287,6 +304,9 @@ def solve_optimal_loadout(wave_enemies, inventory_towers, mode_2vs1=False):
             current_wave_scores = []
             
             for wave_idx, tower_set in enumerate(current_sets):
+                # Safety index access
+                if wave_idx >= len(wave_enemies): break
+                
                 enemy = enemies_db[wave_enemies[wave_idx]]
                 wave_score = sum(scores_matrix[wave_idx][t] for t in tower_set)
                 synergy_bonus = 0
@@ -424,21 +444,5 @@ if st.session_state.page == 'setup':
     st.markdown("---")
     _, c_btn, _ = st.columns([1, 2, 1])
     with c_btn:
-        # Validation
-        valid_towers = len(st.session_state.user_towers) >= 9
-        valid_enemies = len(st.session_state.weekly_enemy_pool) > 0
-        
-        if st.button("🚀 Enter Combat Calculator", type="primary", use_container_width=True, disabled=not (valid_towers and valid_enemies)):
-            # SANITIZE: Ensure Active Waves match the current Pool
-            current_pool = st.session_state.weekly_enemy_pool
-            current_waves = st.session_state.active_waves
-            
-            # If waves are empty or mismatched, reset them
-            if not current_waves or any(w not in current_pool for w in current_waves):
-                new_waves = []
-                if current_pool:
-                    # Pick first 3 unique if possible, else duplicates
-                    new_waves = [current_pool[0]] * 3
-                    for i in range(min(len(current_pool), 3)):
-                        new_waves[i] = current_pool[i]
-                st.session_s
+        disabled = len(st.session_state.user_towers) < 9
+        if st.button(
