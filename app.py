@@ -32,14 +32,14 @@ def load_data():
     if os.path.exists(TOWERS_FILE):
         with open(TOWERS_FILE, 'r') as f: towers = json.load(f)
     else:
-        towers = {} # Safety fallback
+        towers = {} 
 
     # Load Enemies
     if os.path.exists(ENEMIES_FILE):
         with open(ENEMIES_FILE, 'r') as f: enemies = json.load(f)
     else:
-        # Emergency Enemy Fallback to prevent crash
-        enemies = [{"id": "dummy_enemy", "name": "Training Dummy", "type": "Normal", "tags": [], "weakness_types": [], "resistance_types": []}]
+        # Fallback to prevent crash if file missing
+        enemies = [{"id": "dummy", "name": "Unknown Enemy", "type": "Normal", "tags": [], "weakness_types": [], "resistance_types": []}]
     
     # Load Cards
     if os.path.exists(CARDS_FILE):
@@ -120,7 +120,6 @@ if 'weekly_enemy_pool' not in st.session_state:
     else:
         default_pool = defaults.get("weekly_enemy_pool", [])
         valid_pool = [eid for eid in default_pool if eid in enemies_db]
-        # Fallback if defaults are broken
         if not valid_pool: 
             valid_pool = list(enemies_db.keys())[:8]
         st.session_state.weekly_enemy_pool = valid_pool
@@ -129,15 +128,14 @@ if 'weekly_enemy_pool' not in st.session_state:
 if 'card_setup' not in st.session_state:
     st.session_state.card_setup = user_conf['card_setup'] if (user_conf and 'card_setup' in user_conf) else defaults.get("weekly_card_setup", {})
 
-# 5. Active Waves (CRITICAL FIX: Ensure exactly 3 valid items)
+# 5. Active Waves (Ensure exactly 3 valid items)
 if 'active_waves' not in st.session_state:
     if user_conf and 'active_waves' in user_conf and len(user_conf['active_waves']) == 3:
         st.session_state.active_waves = user_conf['active_waves']
     else:
         pool = st.session_state.weekly_enemy_pool
-        # Safety: If pool is empty (shouldn't happen due to #3), use the first enemy in DB
+        # Safety: If pool is empty, use the first enemy in DB
         safe_fill = pool[0] if pool else list(enemies_db.keys())[0]
-        
         waves = [safe_fill] * 3
         for i in range(min(len(pool), 3)):
             waves[i] = pool[i]
@@ -273,7 +271,6 @@ def solve_optimal_loadout(wave_enemies, inventory_towers, mode_2vs1=False):
     if len(inventory_towers) < 9:
         return None, None, "Error: You need at least 9 towers in inventory to fill 3 waves!"
     
-    # Safety Check: Ensure wave_enemies has 3 items
     if len(wave_enemies) < 3:
         return None, None, "Error: Wave data corrupted. Please reset in Setup."
 
@@ -304,7 +301,7 @@ def solve_optimal_loadout(wave_enemies, inventory_towers, mode_2vs1=False):
             current_wave_scores = []
             
             for wave_idx, tower_set in enumerate(current_sets):
-                # Safety index access
+                # Safety index check
                 if wave_idx >= len(wave_enemies): break
                 
                 enemy = enemies_db[wave_enemies[wave_idx]]
@@ -333,6 +330,7 @@ def solve_optimal_loadout(wave_enemies, inventory_towers, mode_2vs1=False):
                 current_wave_scores.append(wave_score + synergy_bonus)
 
             if mode_2vs1:
+                # Maximize sum of best 2
                 optimization_metric = sum(sorted(current_wave_scores, reverse=True)[:2])
             else:
                 optimization_metric = sum(current_wave_scores)
@@ -444,5 +442,7 @@ if st.session_state.page == 'setup':
     st.markdown("---")
     _, c_btn, _ = st.columns([1, 2, 1])
     with c_btn:
-        disabled = len(st.session_state.user_towers) < 9
-        if st.button(
+        valid_towers = len(st.session_state.user_towers) >= 9
+        valid_enemies = len(st.session_state.weekly_enemy_pool) > 0
+        
+        if st.button("🚀 Enter Combat Calculator", type="primary", us
