@@ -73,8 +73,8 @@ def save_user_config():
         "user_towers": st.session_state.user_towers,
         "weekly_enemy_pool": st.session_state.weekly_enemy_pool,
         "card_setup": st.session_state.card_setup,
-        "active_waves": st.session_state.active_waves, # Save selected enemies
-        "page": st.session_state.page, # Save which page we are on
+        "active_waves": st.session_state.active_waves,
+        "page": st.session_state.page,
         "mode_2vs1": st.session_state.get("mode_2vs1", False)
     }
     with open(USER_CONFIG_FILE, 'w') as f:
@@ -85,7 +85,6 @@ defaults = load_defaults()
 user_conf = load_user_config()
 
 # --- 3. SESSION STATE INITIALIZATION ---
-# This logic ensures we restore the exact state from the file
 
 # 1. Page State
 if 'page' not in st.session_state:
@@ -117,11 +116,12 @@ if 'card_setup' not in st.session_state:
     else:
         st.session_state.card_setup = defaults.get("weekly_card_setup", {})
 
-# 5. Active Waves (The actual selections)
-if 'active_waves' not in st.session_state:
-    if user_conf and 'active_waves' in user_conf:
+# 5. Active Waves (ENSURE VALIDITY)
+if 'active_waves' not in st.session_state or not st.session_state.active_waves:
+    if user_conf and 'active_waves' in user_conf and user_conf['active_waves']:
         st.session_state.active_waves = user_conf['active_waves']
     else:
+        # Fallback to pool defaults if empty
         pool = st.session_state.weekly_enemy_pool
         waves = []
         if pool:
@@ -424,25 +424,21 @@ if st.session_state.page == 'setup':
     st.markdown("---")
     _, c_btn, _ = st.columns([1, 2, 1])
     with c_btn:
-        disabled = len(st.session_state.user_towers) < 9
-        if st.button("🚀 Enter Combat Calculator", type="primary", use_container_width=True, disabled=disabled):
-            st.session_state.page = 'main'
-            save_user_config()
-            st.rerun()
-
-# --- 7. PAGE: MAIN ---
-elif st.session_state.page == 'main':
-    with st.sidebar:
-        st.header("Settings")
-        st.markdown("### 🏆 Strategy Mode")
+        # Validation
+        valid_towers = len(st.session_state.user_towers) >= 9
+        valid_enemies = len(st.session_state.weekly_enemy_pool) > 0
         
-        mode_2vs1 = st.checkbox("2:1 Power Mode", 
-                                value=st.session_state.mode_2vs1,
-                                help="Maximize chances of winning 2 rounds, ignoring the score of the weakest round.",
-                                on_change=save_user_config)
-        st.session_state.mode_2vs1 = mode_2vs1
-        
-        if st.button("⚙️ Edit Weekly Setup", use_container_width=True):
-            st.session_state.page = 'setup'
-            save_user_config()
+        if st.button("🚀 Enter Combat Calculator", type="primary", use_container_width=True, disabled=not (valid_towers and valid_enemies)):
+            # SANITIZE: Ensure Active Waves match the current Pool
+            current_pool = st.session_state.weekly_enemy_pool
+            current_waves = st.session_state.active_waves
             
+            # If waves are empty or mismatched, reset them
+            if not current_waves or any(w not in current_pool for w in current_waves):
+                new_waves = []
+                if current_pool:
+                    # Pick first 3 unique if possible, else duplicates
+                    new_waves = [current_pool[0]] * 3
+                    for i in range(min(len(current_pool), 3)):
+                        new_waves[i] = current_pool[i]
+                st.session_s
