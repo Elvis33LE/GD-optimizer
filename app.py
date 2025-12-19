@@ -382,18 +382,23 @@ def calculate_weekly_top_teams():
                 # Count this complete set
                 complete_sets[set_key] = complete_sets.get(set_key, 0) + 1
 
-                # Also count individual teams for effectiveness data
+                # Track which specific enemies each team was chosen for
                 for i, team in enumerate(best_loadout):
                     team_key = tuple(sorted(team))
                     team_counts[team_key] = team_counts.get(team_key, 0) + 1
 
-                    # Track which enemies this team is effective against
+                    # Track which SPECIFIC enemy made the algorithm choose this team
                     if team_key not in team_effectiveness:
-                        team_effectiveness[team_key] = {'enemies': [], 'factions': [], 'wave_index': i}
+                        team_effectiveness[team_key] = {
+                            'specific_enemies': {},  # enemy_id -> count
+                            'wave_index': i
+                        }
 
-                    # Add the wave enemies this team handles
-                    team_effectiveness[team_key]['enemies'].extend([enemies_db[e]['name'] for e in wave_combo])
-                    team_effectiveness[team_key]['factions'].extend([enemies_db[e].get('faction', 'Unknown') for e in wave_combo])
+                    # The key insight: this team was chosen for this specific wave
+                    # So the specific enemy at position i is what this team is optimized for
+                    enemy_id = wave_combo[i]
+                    team_effectiveness[team_key]['specific_enemies'][enemy_id] = \
+                        team_effectiveness[team_key]['specific_enemies'].get(enemy_id, 0) + 1
 
     # Find the most frequent complete set
     if not complete_sets:
@@ -405,12 +410,13 @@ def calculate_weekly_top_teams():
     # Prepare results with the teams from the best complete set
     top_teams = []
     for team_key in best_complete_set:
+        effectiveness_data = team_effectiveness.get(team_key, {})
         team_info = {
             'towers': [towers_db[tid]['name'] for tid in team_key],
             'tower_ids': list(team_key),
             'count': team_counts.get(team_key, 0),
-            'effectiveness': team_effectiveness.get(team_key, {'enemies': [], 'factions': []}),
-            'wave_index': team_effectiveness.get(team_key, {}).get('wave_index', 0)
+            'effectiveness': effectiveness_data,
+            'wave_index': effectiveness_data.get('wave_index', 0)
         }
         top_teams.append(team_info)
 
@@ -582,14 +588,21 @@ elif st.session_state.page == 'main':
                             st.markdown(f"<span style='color:{color}'>●</span> <b>{t['name']}</b> ({t['type']})",
                                         unsafe_allow_html=True)
 
-                    # Show effectiveness against this week's enemies
-                    enemies = list(set(team['effectiveness']['enemies']))
-                    if enemies:
-                        # Limit to first 3 enemies to keep it concise
-                        enemy_list = enemies[:3]
-                        st.caption(f"🎯 Best vs: {', '.join(enemy_list)}")
-                        if len(enemies) > 3:
-                            st.caption(f"   ... and {len(enemies) - 3} more")
+                    # Show effectiveness against specific enemies this team was chosen for
+                    specific_enemies = team['effectiveness'].get('specific_enemies', {})
+                    if specific_enemies:
+                        # Sort by frequency (how often this team was chosen for this enemy)
+                        sorted_enemies = sorted(specific_enemies.items(), key=lambda x: x[1], reverse=True)
+                        top_enemies = [enemies_db[enemy_id]['name'] for enemy_id, count in sorted_enemies[:3]]
+
+                        if top_enemies:
+                            st.caption(f"🎯 Best vs: {', '.join(top_enemies)}")
+                            if len(sorted_enemies) > 3:
+                                st.caption(f"   Chosen for {len(sorted_enemies) - 3} other enemies")
+
+                            # Show a small indicator of how many times chosen
+                            if sorted_enemies[0][1] > 1:
+                                st.caption(f"   (Most chosen for {top_enemies[0]})")
 
                     # Show usage count
                     st.caption(f"📊 Chosen in {team['count']} combinations")
