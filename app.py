@@ -658,7 +658,7 @@ elif st.session_state.page == 'combo_optimizer':
 
     # Display combo optimizer
     st.title("🎯 Combo Optimizer")
-    st.markdown("Find the best tower combinations for normal mode (Guardian + 3 towers)")
+    st.markdown("Find the best tower combinations for normal mode (Guardian + 4 towers)")
 
     # Initialize optimizer
     if 'combo_optimizer' not in st.session_state:
@@ -704,7 +704,7 @@ elif st.session_state.page == 'combo_optimizer':
         for i, combo in enumerate(results, 1):
             with st.expander(f"#{i} - Score: {combo['total_score']:.0f}", expanded=i <= 3):
                 # Tower selection
-                cols = st.columns(4)
+                cols = st.columns(5)
                 for j, tower_id in enumerate(combo['towers']):
                     with cols[j]:
                         tower = towers_db[tower_id]

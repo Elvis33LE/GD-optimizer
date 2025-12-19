@@ -104,13 +104,13 @@ class ComboOptimizer:
         return len(damage_types) * 2
 
     def get_best_combinations(self, enemy_type=None, damage_preference=None, top_n=10):
-        """Get the best tower combinations for normal mode (Guardian + 3 towers)"""
+        """Get the best tower combinations for normal mode (Guardian + 4 towers)"""
         results = []
 
-        # Generate all combinations of 3 towers (excluding Guardian as it's fixed)
+        # Generate all combinations of 4 towers (excluding Guardian as it's fixed)
         other_towers = [tid for tid in self.towers_db.keys() if tid != 'guardian']
 
-        for tower_combo in combinations(other_towers, 3):
+        for tower_combo in combinations(other_towers, 4):
             total_score = 0
             combo_info = {
                 'towers': ['guardian'] + list(tower_combo),
@@ -191,7 +191,7 @@ class ComboOptimizer:
 def display_combo_optimizer():
     """Display the combo optimizer section in Streamlit"""
     st.header("🎯 Combo Optimizer")
-    st.markdown("Find the best tower combinations for normal mode (Guardian + 3 towers)")
+    st.markdown("Find the best tower combinations for normal mode (Guardian + 4 towers)")
 
     # Load data (assuming it's loaded globally or passed in)
     towers_db, enemies_db, synergy_db, cards_db = st.session_state.get('game_data', (
