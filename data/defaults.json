@@ -1,8 +1,8 @@
 {
-    "weekly_mode_name": "Project Ember: Vanguard (Current Week)",
+    "weekly_mode_name": "Project Ember: Vanguard (WEEK 52)",
     "available_towers": [
-        "guardian", "beam", "gravity_vortex", "sky_guard",
-        "laser", "hive", "disruption_drone", "thunderbolt", "railgun"
+        "guardian", "laser", "aeroblast", "beam",
+        "firewheel_drone", "railgun", "tesla_coil", "gravity_vortex", "hive"
     ],
     "weekly_enemy_pool": [
         "elite_mutated_octopus", "elite_armored_behemoth", "swift_fish",
@@ -14,37 +14,37 @@
             "tier_1": ["Charge Activation", "Volley Shot", "Rapid Fire", "Impact Bullet"],
             "tier_2": ["Sustained Charge", "Volley Shot", "Piercing Bullet", "Penetration Boost"]
         },
-        "beam": {
-            "tier_1": ["Damage Increase", "Efficient Beam", "High-Frequency Beam", "Beam Penetration"],
-            "tier_2": ["Stacking Damage", "Efficient Beam", "Efficient Beam", "Slaughtering Beam"]
-        },
-        "gravity_vortex": {
-            "tier_1": ["Static Wormhole", "Wide Field", "Extended Field", "Field Amplification"],
-            "tier_2": ["Wormhole Enhancement", "Wide Field", "Wide Field", "Extra Field"]
-        },
-        "sky_guard": {
-            "tier_1": ["Impact Reinforcement", "Volley Missile", "Explosion Spread", "Impact Multiplier"],
-            "tier_2": ["Missile Amplification", "Volley Missile", "Volley Missile", "Strong Impact"]
-        },
         "laser": {
             "tier_1": ["Energy Surge", "Laser Reflection", "Stable Energy", "Multi-Strike"],
             "tier_2": ["Slow Laser", "Stable Energy", "Stable Energy", "Energy Boost"]
         },
-        "hive": {
-            "tier_1": ["Contact Pulse", "Rapid Barrage", "Dense Swarm", "Hive Mutation II"],
-            "tier_2": ["Amplified Pulse", "Dense Swarm", "Dense Swarm", "Hive Mutation III"]
+        "aeroblast": {
+            "tier_1": ["Shotgun Barrage", "Multiple Blast", "Impact Enhancement", "Central Blast"],
+            "tier_2": ["Extra Loading", "Multiple Blast", "Impact Enhancement", "Chain Explosion"]
         },
-        "disruption_drone": {
-            "tier_1": ["Disruption Force", "Field Expansion", "Field Duration", "Final Blast"],
-            "tier_2": ["Disruption Burst", "Field Duration", "Field Duration", "Quick Cooldown"]
+        "beam": {
+            "tier_1": ["Damage Increase", "Efficient Beam", "High-Frequency Beam", "Beam Penetration"],
+            "tier_2": ["Stacking Damage", "Efficient Beam", "Efficient Beam", "Slaughtering Beam"]
         },
-        "thunderbolt": {
-            "tier_1": ["Chain Lightning", "Continuous Strike", "Swift Strike", "Slaughtering Lightning"],
-            "tier_2": ["Chain Expansion", "Continuous Strike", "Swift Strike", "Chain Strike"]
+        "firewheel_drone": {
+            "tier_1": ["Mini Drones", "Size Boost", "Duration Extension", "Hold the Ground"],
+            "tier_2": ["Killing Array", "Duration Extension", "Duration Extension", "Killing Charge"]
         },
         "railgun": {
-            "tier_1": ["Explosive Shells", "Shell Salvo", "Railgun Upgrade", "Power Penetration"],
-            "tier_2": ["Impact Spread", "Railgun Upgrade", "Railgun Upgrade", "Shell Crit Boost"]
+            "tier_1": ["Basic Split", "Shell Salvo", "Railgun Upgrade", "Power Penetration"],
+            "tier_2": ["Piercing Enhancement", "Shell Salvo", "Shell Salvo", "Shell Crit Boost"]
+        },
+        "tesla_coil": {
+            "tier_1": ["Trap Matrix", "Electro Chain", "Electro Acceleration", "Electro Interference"],
+            "tier_2": ["Enhanced Matrix", "Electro Chain", "Electro Chain", "Expanded Shockwave"]
+        },
+        "gravity_vortex": {
+            "tier_1": ["Small Black Hole", "Wide Field", "Extended Field", "Extended Pull"],
+            "tier_2": ["Black Hole Expansion", "Extended Field", "Extended Field", "Extended Range"]
+        },
+        "hive": {
+            "tier_1": ["Swarm Echo", "Rapid Barrage", "Dense Swarm", "Wasp Evolution II"],
+            "tier_2": ["Echo Upgrade II", "Rapid Barrage", "Rapid Barrage", "Wasp Evolution III"]
         }
     }
 }
