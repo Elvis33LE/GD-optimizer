@@ -271,7 +271,7 @@ def calculate_single_score(enemy_id, tower_id):
 def solve_optimal_loadout(wave_enemies, inventory_towers, mode_2vs1=False):
     if len(inventory_towers) < 9:
         return None, None, "Error: You need at least 9 towers in inventory to fill 3 waves!"
-    
+
     if len(wave_enemies) < 3:
         return None, None, "Error: Wave data corrupted. Please reset in Setup."
 
@@ -298,36 +298,36 @@ def solve_optimal_loadout(wave_enemies, inventory_towers, mode_2vs1=False):
         for w2_set in combinations(remaining_6, 3):
             w3_set = [x for x in remaining_6 if x not in w2_set]
             current_sets = [w1_set, w2_set, w3_set]
-            
+
             current_wave_scores = []
-            
+
             for wave_idx, tower_set in enumerate(current_sets):
                 # Safety index check
                 if wave_idx >= len(wave_enemies): break
-                
+
                 enemy = enemies_db[wave_enemies[wave_idx]]
                 wave_score = sum(scores_matrix[wave_idx][t] for t in tower_set)
                 synergy_bonus = 0
-                
+
                 for pair in combinations(tower_set, 2):
                     key = frozenset(pair)
                     if key in synergy_db:
                         for combo in synergy_db[key]:
                             rating = combo.get('score', 5)
-                            combo_points = rating * 10 
+                            combo_points = rating * 10
                             tags = get_combo_tags(combo['description'], combo['name'])
-                            
-                            if any(t in enemy.get('weakness_types', []) for t in tags): combo_points *= 1.5 
-                            if any(t in enemy.get('resistance_types', []) for t in tags): combo_points *= 0.5 
-                                
+
+                            if any(t in enemy.get('weakness_types', []) for t in tags): combo_points *= 1.5
+                            if any(t in enemy.get('resistance_types', []) for t in tags): combo_points *= 0.5
+
                             requires_burn = "burn" in combo['description'].lower()
                             requires_slow = "slow" in combo['description'].lower()
-                            if requires_burn and "Burn" in setup_conditions: combo_points *= 1.4 
+                            if requires_burn and "Burn" in setup_conditions: combo_points *= 1.4
                             if requires_slow and "Slow" in setup_conditions: combo_points *= 1.3
-                            if "Vulnerable" in tags: wave_score *= 1.15 
-                                
+                            if "Vulnerable" in tags: wave_score *= 1.15
+
                             synergy_bonus += combo_points
-                
+
                 current_wave_scores.append(wave_score + synergy_bonus)
 
             if mode_2vs1:
@@ -342,6 +342,85 @@ def solve_optimal_loadout(wave_enemies, inventory_towers, mode_2vs1=False):
                 best_wave_scores = current_wave_scores
 
     return best_allocation, best_wave_scores, None
+
+def calculate_weekly_top_teams():
+    """Calculate the most frequently chosen tower teams across all wave combinations, ensuring all 9 towers are used"""
+    if 'weekly_top_teams' in st.session_state:
+        return st.session_state.weekly_top_teams
+
+    # Get weekly enemies from defaults
+    weekly_enemies = defaults.get('weekly_enemy_pool', [])
+    if not weekly_enemies:
+        return []
+
+    # Use user's inventory towers
+    available_towers = st.session_state.get('user_towers', list(towers_db.keys()))
+    if len(available_towers) < 9:
+        return []
+
+    # Count team appearances and track complete sets
+    team_counts = {}
+    team_effectiveness = {}
+    complete_sets = {}  # Track which 3-team sets use all 9 towers
+
+    # Generate all possible 3-wave combinations
+    for wave_combo in combinations(weekly_enemies, 3):
+        # Get optimal loadout for this wave combination
+        best_loadout, _, _ = solve_optimal_loadout(list(wave_combo), available_towers, mode_2vs1=False)
+
+        if best_loadout and len(best_loadout) == 3:
+            # Check if this loadout uses all 9 unique towers
+            all_towers_used = set()
+            for team in best_loadout:
+                all_towers_used.update(team)
+
+            if len(all_towers_used) == 9:  # Complete set using all towers
+                # Create a key for the complete set (sorted for consistency)
+                sorted_teams = [tuple(sorted(team)) for team in best_loadout]
+                set_key = tuple(sorted(sorted_teams))  # Sort the 3 teams themselves
+
+                # Count this complete set
+                complete_sets[set_key] = complete_sets.get(set_key, 0) + 1
+
+                # Also count individual teams for effectiveness data
+                for i, team in enumerate(best_loadout):
+                    team_key = tuple(sorted(team))
+                    team_counts[team_key] = team_counts.get(team_key, 0) + 1
+
+                    # Track which enemies this team is effective against
+                    if team_key not in team_effectiveness:
+                        team_effectiveness[team_key] = {'enemies': [], 'factions': [], 'wave_index': i}
+
+                    # Add the wave enemies this team handles
+                    team_effectiveness[team_key]['enemies'].extend([enemies_db[e]['name'] for e in wave_combo])
+                    team_effectiveness[team_key]['factions'].extend([enemies_db[e].get('faction', 'Unknown') for e in wave_combo])
+
+    # Find the most frequent complete set
+    if not complete_sets:
+        return []
+
+    # Get the most common complete set
+    best_complete_set = max(complete_sets.items(), key=lambda x: x[1])[0]
+
+    # Prepare results with the teams from the best complete set
+    top_teams = []
+    for team_key in best_complete_set:
+        team_info = {
+            'towers': [towers_db[tid]['name'] for tid in team_key],
+            'tower_ids': list(team_key),
+            'count': team_counts.get(team_key, 0),
+            'effectiveness': team_effectiveness.get(team_key, {'enemies': [], 'factions': []}),
+            'wave_index': team_effectiveness.get(team_key, {}).get('wave_index', 0)
+        }
+        top_teams.append(team_info)
+
+    # Sort by wave index to maintain order
+    top_teams.sort(key=lambda x: x['wave_index'])
+
+    # Cache in session state
+    st.session_state.weekly_top_teams = top_teams
+
+    return top_teams
 
 # --- 5. VISUAL ASSETS ---
 def get_svg(icon_name, color):
@@ -484,6 +563,37 @@ elif st.session_state.page == 'main':
             st.rerun()
 
         st.divider()
+
+        # --- WEEKLY TOP TEAMS ---
+        st.markdown("### 💡 This Week's Top Teams")
+        st.caption("Most chosen teams across all wave combinations")
+
+        # Calculate and display top teams
+        top_teams = calculate_weekly_top_teams()
+
+        if top_teams:
+            for i, team in enumerate(top_teams, 1):
+                with st.expander(f"Team {i}: {' - '.join(team['towers'])}", expanded=False):
+                    # Show team composition with colors
+                    for tower_id in team['tower_ids']:
+                        if tower_id in towers_db:
+                            t = towers_db[tower_id]
+                            color = TYPE_COLORS.get(t['type'], '#fff')
+                            st.markdown(f"<span style='color:{color}'>●</span> <b>{t['name']}</b> ({t['type']})",
+                                        unsafe_allow_html=True)
+
+                    # Show effectiveness
+                    factions = list(set(team['effectiveness']['factions']))
+                    if factions:
+                        st.caption(f"🎯 Best vs: {', '.join(factions[:3])}")
+
+                    # Show usage count
+                    st.caption(f"📊 Chosen in {team['count']} combinations")
+        else:
+            st.caption("No data available. Set up your inventory first.")
+
+        st.divider()
+
         st.subheader("Active Inventory")
         for t_id in st.session_state.user_towers:
             t = towers_db[t_id]
