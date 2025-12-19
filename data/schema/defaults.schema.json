@@ -1,0 +1,486 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "weekly_enemy_pool": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "abyss_dominator",
+          "abyssal_malefish",
+          "aerospace_carrier",
+          "alien_scout_drone",
+          "armored_crab",
+          "asteroid",
+          "bio_tick",
+          "bone_blade_fish",
+          "conflict_entity",
+          "cosmic_cube",
+          "crystal_bastion",
+          "devouring_spore",
+          "devouring_virus",
+          "elite_alien_golem",
+          "elite_armored_behemoth",
+          "elite_armored_insect",
+          "elite_leech_virus",
+          "elite_mirage_moth",
+          "elite_mutated_octopus",
+          "elite_orebreaker",
+          "elite_rejuvenation_star",
+          "elite_specter",
+          "elite_swift_blade_comet",
+          "energy_virus",
+          "excavator",
+          "eye_of_the_void",
+          "fire_meteor",
+          "gigaclaw_hunter",
+          "glowing_jellyfish",
+          "meteor_carapace_beetle",
+          "meteorite",
+          "mutated_bat",
+          "mutated_stinger",
+          "phantom_virus",
+          "pursuer",
+          "raging_ant_vanguard",
+          "raider_drone",
+          "rapid_virus",
+          "reaper",
+          "rock_walker",
+          "shadow_fighter",
+          "shatterstar",
+          "silk_hunter",
+          "spikeshell_beetle",
+          "stinger_lord",
+          "swift_fish",
+          "tide_knight",
+          "umbrella_destroyer"
+        ]
+      }
+    },
+    "available_towers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "aeroblast",
+          "beam",
+          "disruption_drone",
+          "firewheel_drone",
+          "gravity_vortex",
+          "guardian",
+          "hive",
+          "laser",
+          "railgun",
+          "sky_guard",
+          "tesla_coil",
+          "thunderbolt"
+        ]
+      }
+    },
+    "weekly_card_setup": {
+      "type": "object",
+      "description": "Card configuration per tower organized by tiers.",
+      "properties": {
+        "aeroblast": {
+          "type": "object",
+          "description": "Tiers for aeroblast",
+          "patternProperties": {
+            "^tier_\\d+$": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Central Blast",
+                  "Chain Explosion",
+                  "Extra Loading",
+                  "Firewheel Summon",
+                  "Floating Mine",
+                  "Gravity Bomb",
+                  "Impact Enhancement",
+                  "Massive Explosion",
+                  "Mine Shockwave",
+                  "Multiple Blast",
+                  "Piercing Blast",
+                  "Powerful Blast",
+                  "Range Extension",
+                  "Secondary Explosion",
+                  "Shatter Impact",
+                  "Shotgun Barrage",
+                  "Shotgun Penetration",
+                  "Wide Minefield"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "beam": {
+          "type": "object",
+          "description": "Tiers for beam",
+          "patternProperties": {
+            "^tier_\\d+$": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Beam Boost",
+                  "Beam Lightning",
+                  "Beam Penetration",
+                  "Beam Refraction",
+                  "DMG Multiplier",
+                  "Damage Increase",
+                  "Disruptive Beam",
+                  "Efficient Beam",
+                  "Extra Beam",
+                  "Extreme Focus",
+                  "High-Frequency Beam",
+                  "Matrix Resonance",
+                  "Refraction Explosion",
+                  "Refraction Pull",
+                  "Slaughtering Beam",
+                  "Stacking Damage",
+                  "Target Explosion"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "disruption_drone": {
+          "type": "object",
+          "description": "Tiers for disruption_drone",
+          "patternProperties": {
+            "^tier_\\d+$": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Area Disruption",
+                  "Converging Field",
+                  "Disruption Burst",
+                  "Disruption Force",
+                  "Electric Field",
+                  "Field Amplification",
+                  "Field Duration",
+                  "Field Expansion",
+                  "Field Replication",
+                  "Field Suppression",
+                  "Final Blast",
+                  "Fortress Support",
+                  "Overcharged Disruption",
+                  "Quick Cooldown",
+                  "Random Disturbance",
+                  "Rewind Teleport",
+                  "Small Laser",
+                  "Stasis Field",
+                  "Teleport Damage"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "firewheel_drone": {
+          "type": "object",
+          "description": "Tiers for firewheel_drone",
+          "patternProperties": {
+            "^tier_\\d+$": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Blazing Pulse",
+                  "Blazing Trail",
+                  "Combo Boost",
+                  "Duration Extension",
+                  "Extended Trail",
+                  "Extra Barrage",
+                  "Firewheel Boost",
+                  "Firewheel Ignition",
+                  "Flame Trail",
+                  "Hold the Ground",
+                  "Killing Array",
+                  "Killing Charge",
+                  "Mini Drones",
+                  "Mini Size Boost",
+                  "Size Boost",
+                  "Smart Acceleration",
+                  "Vortex Firewheel"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "gravity_vortex": {
+          "type": "object",
+          "description": "Tiers for gravity_vortex",
+          "patternProperties": {
+            "^tier_\\d+$": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Binary Stars",
+                  "Black Hole Expansion",
+                  "Destructive Black Hole",
+                  "Double Fission",
+                  "Extended Field",
+                  "Extended Pull",
+                  "Extended Range",
+                  "Extra Field",
+                  "Field Amplification",
+                  "Field Disruption",
+                  "Field Reflection",
+                  "High Power Field",
+                  "Small Black Hole",
+                  "Static Wormhole",
+                  "Wide Field",
+                  "Wormhole Enhancement",
+                  "Wormhole Expansion"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "guardian": {
+          "type": "object",
+          "description": "Tiers for guardian",
+          "patternProperties": {
+            "^tier_\\d+$": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Bullet Explosion",
+                  "Bullets Boost",
+                  "Charge Activation",
+                  "Counterburst Scatter",
+                  "Disruption Fire",
+                  "Electric Bullet",
+                  "Explosion Boost",
+                  "Explosion Expansion",
+                  "Flame Bullet",
+                  "Impact Bullet",
+                  "Laser Shot",
+                  "Mirror Guardian",
+                  "Penetration Boost",
+                  "Piercing Bullet",
+                  "Quick Charge",
+                  "Rapid Fire",
+                  "Reflection Boost",
+                  "Shotgun Evolution",
+                  "Splitting Bullet",
+                  "Sustained Charge",
+                  "Volley Shot",
+                  "Volley Shot +"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "hive": {
+          "type": "object",
+          "description": "Tiers for hive",
+          "patternProperties": {
+            "^tier_\\d+$": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Aero Split",
+                  "Amplified Pulse",
+                  "Contact Pulse",
+                  "Dense Swarm",
+                  "Echo Upgrade II",
+                  "Echo Upgrade III",
+                  "Electro-Wasps",
+                  "Final Resonance",
+                  "Hive Mutation II",
+                  "Hive Mutation III",
+                  "Rapid Barrage",
+                  "Swarm Assault",
+                  "Swarm Echo",
+                  "Swarm Fury",
+                  "Volley Wasp",
+                  "Wasp Evolution II",
+                  "Wasp Evolution III",
+                  "Wasp Retrieval"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "laser": {
+          "type": "object",
+          "description": "Tiers for laser",
+          "patternProperties": {
+            "^tier_\\d+$": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Additional Sweep",
+                  "Convergence Trigger",
+                  "Deflected Laser Reflection",
+                  "Energy Boost",
+                  "Energy Detonation",
+                  "Energy Overload",
+                  "Energy Paralysis",
+                  "Energy Surge",
+                  "Graviton Laser",
+                  "High-Energy Pulse",
+                  "Laser Amplification",
+                  "Laser Reflection",
+                  "Multi-Strike",
+                  "Slow Laser",
+                  "Stable Energy",
+                  "Sweep Boost",
+                  "Tear Explosion",
+                  "Vulnerable Laser"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "railgun": {
+          "type": "object",
+          "description": "Tiers for railgun",
+          "patternProperties": {
+            "^tier_\\d+$": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Ammo Boost",
+                  "Basic Split",
+                  "Execution Penetration",
+                  "Explosive Shells",
+                  "Impact Boost",
+                  "Impact Spread",
+                  "Piercing Enhancement",
+                  "Piercing Mark",
+                  "Piercing Ricochet",
+                  "Power Penetration",
+                  "Railgun Upgrade",
+                  "Secondary Minefield",
+                  "Shell Crit Boost",
+                  "Shell Salvo",
+                  "Split Mastery",
+                  "Surge Pierce",
+                  "Weak Spot Strike"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "sky_guard": {
+          "type": "object",
+          "description": "Tiers for sky_guard",
+          "patternProperties": {
+            "^tier_\\d+$": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Burning Area",
+                  "Chain Reaction",
+                  "Close-range Explosion",
+                  "Collapse Explosion",
+                  "Death Ignition",
+                  "Detonation Thunderbolt",
+                  "Explosion Spread",
+                  "Fire Transmission",
+                  "Ignition",
+                  "Ignition Amplification",
+                  "Impact Multiplier",
+                  "Impact Reinforcement",
+                  "Missile Amplification",
+                  "Path Strike",
+                  "Sky Guard Boost",
+                  "Strong Impact",
+                  "Thermal Warhead",
+                  "Volley Missile"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "tesla_coil": {
+          "type": "object",
+          "description": "Tiers for tesla_coil",
+          "patternProperties": {
+            "^tier_\\d+$": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Charge Delayed",
+                  "Charge Destruction",
+                  "Charge Expansion",
+                  "Charged Shock",
+                  "Cooperative Beam",
+                  "Electric Chain Surge",
+                  "Electro Acceleration",
+                  "Electro Boost",
+                  "Electro Chain",
+                  "Electro Interference",
+                  "Enhanced Matrix",
+                  "Expanded Shockwave",
+                  "Highvolt Trigger",
+                  "Matrix Thunderbolt",
+                  "Spinning Laser",
+                  "Trap Matrix",
+                  "Wasp Mirage"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "thunderbolt": {
+          "type": "object",
+          "description": "Tiers for thunderbolt",
+          "patternProperties": {
+            "^tier_\\d+$": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Chain Expansion",
+                  "Chain Interference",
+                  "Chain Lightning",
+                  "Chain Strike",
+                  "Continuous Strike",
+                  "Extra Strike",
+                  "Life Erosion",
+                  "Lightning Aftershock",
+                  "Lightning Boost",
+                  "Lightning Expansion",
+                  "Lightning Paralysis",
+                  "Lightning Teleportation",
+                  "Lightning Trail",
+                  "Paralysis Extension",
+                  "Paralyzing Shock",
+                  "Slaughtering Lightning",
+                  "Swift Strike",
+                  "Thunder Chain"
+                ]
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

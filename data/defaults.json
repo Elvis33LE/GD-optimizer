@@ -5,9 +5,9 @@
         "laser", "hive", "disruption_drone", "thunderbolt", "railgun"
     ],
     "weekly_enemy_pool": [
-        "meteor_carapace_beetle", "bio_tick", "raging_ant_vanguard",
-        "mutated_bat", "silk_hunter", "spikeshell_beetle",
-        "elite_mirage_moth", "elite_armored_insect"
+        "elite_mutated_octopus", "elite_armored_behemoth", "swift_fish",
+        "abyssal_malefish", "glowing_jellyfish", "gigaclaw_hunter",
+        "tide_knight", "armored_crab"
     ],
     "weekly_card_setup": {
         "guardian": {

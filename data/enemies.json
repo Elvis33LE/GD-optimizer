@@ -504,5 +504,27 @@
     "resistance_types": [],
     "immunities": [],
     "tags": ["Tank", "Armored", "Charger"]
-  }
+  },
+  {
+    "id": "tide_knight",
+    "name": "Tide Knight",
+    "type": "Normal",
+    "faction": "Aquatic",
+    "description": "Summons powerful tidal waves, greatly increasing the movement speed of all nearby enemies and empowering aquatic forces. Takes increased Electric damage.",
+    "weakness_types": ["Electric"],
+    "resistance_types": [],
+    "immunities": [],
+    "tags": ["Wave Leader", "Speed Buffer"]
+  },
+  {
+  "id": "crystal_bastion",
+  "name": "Crystal Bastion",
+  "type": "Boss",
+  "faction": "Meteorite",
+  "description": "Generates small crystal clusters periodically that absorb incoming damage, forming a moving crystal fortress on the front lines. Takes increased Physical and Fire damage.",
+  "weakness_types": ["Physical", "Fire"],
+  "resistance_types": [],
+  "immunities": [],
+  "tags": ["Shielded", "Spawner", "Tank"]
+}
 ]
