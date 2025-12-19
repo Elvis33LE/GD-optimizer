@@ -582,10 +582,14 @@ elif st.session_state.page == 'main':
                             st.markdown(f"<span style='color:{color}'>●</span> <b>{t['name']}</b> ({t['type']})",
                                         unsafe_allow_html=True)
 
-                    # Show effectiveness
-                    factions = list(set(team['effectiveness']['factions']))
-                    if factions:
-                        st.caption(f"🎯 Best vs: {', '.join(factions[:3])}")
+                    # Show effectiveness against this week's enemies
+                    enemies = list(set(team['effectiveness']['enemies']))
+                    if enemies:
+                        # Limit to first 3 enemies to keep it concise
+                        enemy_list = enemies[:3]
+                        st.caption(f"🎯 Best vs: {', '.join(enemy_list)}")
+                        if len(enemies) > 3:
+                            st.caption(f"   ... and {len(enemies) - 3} more")
 
                     # Show usage count
                     st.caption(f"📊 Chosen in {team['count']} combinations")
