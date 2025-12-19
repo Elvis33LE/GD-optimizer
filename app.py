@@ -4,6 +4,7 @@ import os
 import textwrap
 import base64
 from itertools import combinations
+from combo_optimizer import ComboOptimizer
 
 # --- 1. SETUP & CONFIGURATION ---
 st.set_page_config(page_title="Vanguard 2.0: Strategy Engine", layout="wide")
@@ -476,6 +477,12 @@ elif st.session_state.page == 'main':
             st.session_state.page = 'setup'
             save_user_config()
             st.rerun()
+
+        if st.button("🎯 Combo Optimizer", use_container_width=True):
+            st.session_state.page = 'combo_optimizer'
+            save_user_config()
+            st.rerun()
+
         st.divider()
         st.subheader("Active Inventory")
         for t_id in st.session_state.user_towers:
@@ -628,4 +635,141 @@ elif st.session_state.page == 'main':
         except Exception as e:
             st.error(f"⚠️ Calculation Error: {str(e)}")
             st.caption("Try going back to Setup and resetting defaults.")
+
+# --- 8. PAGE: COMBO OPTIMIZER ---
+elif st.session_state.page == 'combo_optimizer':
+    # Add navigation button in sidebar
+    with st.sidebar:
+        st.header("Navigation")
+        if st.button("🔙 Back to Combat Calculator", use_container_width=True):
+            st.session_state.page = 'main'
+            save_user_config()
+            st.rerun()
+        if st.button("⚙️ Edit Weekly Setup", use_container_width=True):
+            st.session_state.page = 'setup'
+            save_user_config()
+            st.rerun()
+        st.divider()
+        st.markdown("### Tower Overview")
+        for t_id, t in towers_db.items():
+            color = TYPE_COLORS.get(t['type'], '#fff')
+            st.markdown(f"<span style='color:{color}'>●</span> <b>{t['name']}</b> ({t['type']})",
+                        unsafe_allow_html=True)
+
+    # Display combo optimizer
+    st.title("🎯 Combo Optimizer")
+    st.markdown("Find the best tower combinations for normal mode (Guardian + 3 towers)")
+
+    # Initialize optimizer
+    if 'combo_optimizer' not in st.session_state:
+        st.session_state.combo_optimizer = ComboOptimizer(towers_db, enemies_db, synergy_db, cards_db)
+
+    optimizer = st.session_state.combo_optimizer
+
+    # User inputs
+    col1, col2 = st.columns([1, 1])
+
+    with col1:
+        # Get unique enemy factions
+        enemy_factions = list(set(e.get('faction', 'Unknown') for e in enemies_db.values()))
+        enemy_type = st.selectbox(
+            "Target Enemy Type",
+            options=["Any"] + sorted(enemy_factions),
+            index=0,
+            help="Optimize towers against specific enemy factions"
+        )
+
+    with col2:
+        damage_types = list(set(t.get('type', 'Unknown') for t in towers_db.values()))
+        damage_preference = st.selectbox(
+            "Preferred Damage Type",
+            options=["Any"] + sorted(damage_types),
+            index=0,
+            help="Prefer towers with specific damage type"
+        )
+
+    # Optimization button
+    if st.button("🔍 Find Best Combinations", type="primary"):
+        with st.spinner("Analyzing tower combinations..."):
+            results = optimizer.get_best_combinations(
+                enemy_type=enemy_type if enemy_type != "Any" else None,
+                damage_preference=damage_preference if damage_preference != "Any" else None,
+                top_n=10
+            )
+
+        # Display results
+        st.success(f"Found {len(results)} optimal combinations!")
+        st.markdown("---")
+
+        for i, combo in enumerate(results, 1):
+            with st.expander(f"#{i} - Score: {combo['total_score']:.0f}", expanded=i <= 3):
+                # Tower selection
+                cols = st.columns(4)
+                for j, tower_id in enumerate(combo['towers']):
+                    with cols[j]:
+                        tower = towers_db[tower_id]
+                        color = TYPE_COLORS.get(tower['type'], '#fff')
+                        icon_svg = get_svg(tower.get('icon', 'beam'), color)
+                        b64_svg = base64.b64encode(icon_svg.encode('utf-8')).decode("utf-8")
+
+                        st.markdown(f"""
+                        <div style="text-align: center; padding: 10px;">
+                            <img src="data:image/svg+xml;base64,{b64_svg}" style="width:60px; height:60px; display: block; margin: 0 auto;">
+                            <div style="font-weight: bold; margin-top: 5px;">{tower['name']}</div>
+                            <div style="font-size: 0.9em; color: {color};">{tower['type']}</div>
+                            <div style="font-size: 0.8em; color: #888;">{tower['role']}</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                # Score breakdown
+                score_data = combo['score_breakdown']
+                if score_data:
+                    st.subheader("📊 Score Breakdown")
+                    score_cols = st.columns(len(score_data))
+                    for idx, (score_type, score) in enumerate(score_data.items()):
+                        with score_cols[idx]:
+                            friendly_name = score_type.replace('_', ' ').title()
+                            st.metric(friendly_name, f"{score:.0f}")
+
+                # Combo cards
+                if combo['combos']:
+                    st.subheader("🔗 Key Combos")
+                    for combo_card in combo['combos']:
+                        st.markdown(f"• {combo_card}")
+
+                # Chain sequences
+                if combo['chains']:
+                    st.subheader("⚡ Chain Potential")
+                    for chain in combo['chains']:
+                        st.markdown(f"• {chain}")
+
+                # Damage type breakdown
+                st.subheader("💥 Damage Types")
+                damage_cols = st.columns(2)
+                with damage_cols[0]:
+                    damage_types = {}
+                    for tower_id in combo['towers']:
+                        for tag in towers_db[tower_id].get('damage_tags', []):
+                            damage_types[tag] = damage_types.get(tag, 0) + 1
+
+                    for damage_type, count in damage_types.items():
+                        st.markdown(f"• {damage_type}: {count} tower(s)")
+
+                with damage_cols[1]:
+                    # Show effectiveness against selected enemy
+                    if enemy_type != "Any":
+                        st.markdown(f"**vs {enemy_type} Enemies:**")
+                        # Show tower effectiveness
+                        for tower_id in combo['towers']:
+                            if tower_id in towers_db:
+                                tower_type = towers_db[tower_id].get('type')
+                                # Simple effectiveness display
+                                if tower_type == "Fire" and enemy_type == "Insect":
+                                    st.markdown(f"• 🔥 {towers_db[tower_id]['name']} - Strong vs Insect")
+                                elif tower_type == "Electric" and enemy_type == "Aquatic":
+                                    st.markdown(f"• ⚡ {towers_db[tower_id]['name']} - Strong vs Aquatic")
+                                else:
+                                    st.markdown(f"• {towers_db[tower_id]['name']}")
+
+                st.markdown("---")
             
