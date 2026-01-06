@@ -332,77 +332,61 @@ def solve_optimal_loadout(wave_enemies, inventory_towers, mode_2vs1=False):
     # Check if Tesla Coil has Matrix Thunderbolt setup (Trap Matrix + Enhanced Matrix)
     has_tesla_matrix = has_matrix_thunderbolt_setup() and "tesla_coil" in inventory_towers
 
-    # Try both normal (3x3) and Tesla-only (1+4+4) configurations
-    configurations_to_try = []
-
-    # Normal configuration: 3 teams of 3 towers each
-    configurations_to_try.append(("normal", top_9))
-
-    # Tesla-only configuration: 1 Tesla + 2 teams of 4
+    # When Tesla Matrix is available, it's ALWAYS preferred over normal 3x3
     if has_tesla_matrix:
-        # Remove tesla_coil from top_9 for the other teams
-        other_towers = [t for t in top_9 if t != "tesla_coil"]
-        if len(other_towers) >= 8:  # Need 8 other towers for 2 teams of 4
-            configurations_to_try.append(("tesla_only", other_towers))
+        # Use Tesla Matrix configuration: 1 Tesla + 2 teams of 3
+        remaining_towers = [t for t in top_9 if t != "tesla_coil"]
 
-    for config_type, towers_to_use in configurations_to_try:
-        if config_type == "normal":
-            # Standard 3x3 configuration
-            for w1_set in combinations(towers_to_use, 3):
-                remaining_6 = [x for x in towers_to_use if x not in w1_set]
-                for w2_set in combinations(remaining_6, 3):
-                    w3_set = [x for x in remaining_6 if x not in w2_set]
-                    current_sets = [w1_set, w2_set, tuple(w3_set)]
+        if len(remaining_towers) >= 8:  # Need 8 other towers to pick best 6
+            # Try each wave position for the Tesla-only team
+            for tesla_wave_idx in range(3):
+                tesla_set = ("tesla_coil",)
 
-                    current_wave_scores = [calculate_set_score(s, i) for i, s in enumerate(current_sets)]
+                # Try all combinations of 6 towers from the remaining 8
+                for towers_for_teams in combinations(remaining_towers, 6):
+                    # Try all ways to split these 6 towers into 2 teams of 3
+                    for team1 in combinations(towers_for_teams, 3):
+                        team2 = tuple(x for x in towers_for_teams if x not in team1)
 
-                    if mode_2vs1:
-                        optimization_metric = sum(sorted(current_wave_scores, reverse=True)[:2])
-                    else:
-                        optimization_metric = sum(current_wave_scores)
+                        # Assign teams to waves based on tesla_wave_idx
+                        current_sets = [None, None, None]
+                        current_sets[tesla_wave_idx] = tesla_set
 
-                    if optimization_metric > best_total:
-                        best_total = optimization_metric
-                        best_allocation = current_sets
-                        best_wave_scores = current_wave_scores
+                        # Fill the other two waves
+                        other_indices = [i for i in range(3) if i != tesla_wave_idx]
+                        current_sets[other_indices[0]] = team1
+                        current_sets[other_indices[1]] = team2
 
-        elif config_type == "tesla_only":
-            # Tesla-only configuration: 1 wave with just Tesla, 2 waves with 3 towers each
-            # From the remaining 8 towers, pick the best 6 to form 2 teams of 3
-            # 2 towers will be unused
-            remaining_towers = [t for t in top_9 if t != "tesla_coil"]
+                        current_wave_scores = [calculate_set_score(s, i) for i, s in enumerate(current_sets)]
 
-            if len(remaining_towers) >= 8:  # Need 8 other towers to pick best 6
-                # Try each wave position for the Tesla-only team
-                for tesla_wave_idx in range(3):
-                    tesla_set = ("tesla_coil",)
+                        if mode_2vs1:
+                            optimization_metric = sum(sorted(current_wave_scores, reverse=True)[:2])
+                        else:
+                            optimization_metric = sum(current_wave_scores)
 
-                    # Try all combinations of 6 towers from the remaining 8
-                    for towers_for_teams in combinations(remaining_towers, 6):
-                        # Try all ways to split these 6 towers into 2 teams of 3
-                        for team1 in combinations(towers_for_teams, 3):
-                            team2 = tuple(x for x in towers_for_teams if x not in team1)
+                        if optimization_metric > best_total:
+                            best_total = optimization_metric
+                            best_allocation = current_sets
+                            best_wave_scores = current_wave_scores
+    else:
+        # Normal configuration: 3 teams of 3 towers each
+        for w1_set in combinations(top_9, 3):
+            remaining_6 = [x for x in top_9 if x not in w1_set]
+            for w2_set in combinations(remaining_6, 3):
+                w3_set = [x for x in remaining_6 if x not in w2_set]
+                current_sets = [w1_set, w2_set, tuple(w3_set)]
 
-                            # Assign teams to waves based on tesla_wave_idx
-                            current_sets = [None, None, None]
-                            current_sets[tesla_wave_idx] = tesla_set
+                current_wave_scores = [calculate_set_score(s, i) for i, s in enumerate(current_sets)]
 
-                            # Fill the other two waves
-                            other_indices = [i for i in range(3) if i != tesla_wave_idx]
-                            current_sets[other_indices[0]] = team1
-                            current_sets[other_indices[1]] = team2
+                if mode_2vs1:
+                    optimization_metric = sum(sorted(current_wave_scores, reverse=True)[:2])
+                else:
+                    optimization_metric = sum(current_wave_scores)
 
-                            current_wave_scores = [calculate_set_score(s, i) for i, s in enumerate(current_sets)]
-
-                            if mode_2vs1:
-                                optimization_metric = sum(sorted(current_wave_scores, reverse=True)[:2])
-                            else:
-                                optimization_metric = sum(current_wave_scores)
-
-                            if optimization_metric > best_total:
-                                best_total = optimization_metric
-                                best_allocation = current_sets
-                                best_wave_scores = current_wave_scores
+                if optimization_metric > best_total:
+                    best_total = optimization_metric
+                    best_allocation = current_sets
+                    best_wave_scores = current_wave_scores
 
     return best_allocation, best_wave_scores, None
 
