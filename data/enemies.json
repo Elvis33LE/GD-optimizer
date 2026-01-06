@@ -526,5 +526,38 @@
   "resistance_types": [],
   "immunities": [],
   "tags": ["Shielded", "Spawner", "Tank"]
-}
+},
+{
+      "id": "husk_spore",
+      "name": "Husk Spore",
+      "type": "Elite",
+      "faction": "Pathogen",
+      "tags": [
+          "Projectile Block",
+          "Shield",
+          "Death Effect"
+      ],
+      "weakness_types": [
+          "Energy"
+      ],
+      "resistance_types": [],
+      "immunities": [],
+      "description": "Upon death, creates a barrier for 5s that blocks all projectiles. Takes 40% increased Energy damage."
+  },
+  {
+      "id": "rebirth_mycelium_core",
+      "name": "Rebirth Mycelium Core",
+      "type": "Elite",
+      "faction": "Pathogen",
+      "tags": [
+          "Revive",
+          "Swarm"
+      ],
+      "weakness_types": [
+          "Energy"
+      ],
+      "resistance_types": [],
+      "immunities": [],
+      "description": "Revives 3s after the first death to continue fighting. Takes 50% increased Energy damage."
+  }
 ]

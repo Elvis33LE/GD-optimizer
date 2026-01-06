@@ -1,34 +1,34 @@
 {
     "weekly_mode_name": "Project Ember: Vanguard (WEEK 52)",
     "available_towers": [
-        "guardian", "laser", "aeroblast", "beam",
-        "firewheel_drone", "railgun", "tesla_coil", "gravity_vortex", "hive"
+        "guardian", "laser", "aeroblast", "sky_guard",
+        "thunderbolt", "railgun", "tesla_coil", "disruption_drone", "hive"
     ],
     "weekly_enemy_pool": [
-        "elite_mutated_octopus", "elite_armored_behemoth", "swift_fish",
-        "abyssal_malefish", "glowing_jellyfish", "gigaclaw_hunter",
-        "tide_knight", "armored_crab"
+        "elite_leech_virus", "elite_rejuvenation_star", "conflict_entity",
+        "rapid_virus", "energy_virus", "devouring_spore",
+        "husk_spore", "rebirth_mycelium_core"
     ],
     "weekly_card_setup": {
         "guardian": {
-            "tier_1": ["Charge Activation", "Volley Shot", "Rapid Fire", "Impact Bullet"],
-            "tier_2": ["Sustained Charge", "Volley Shot", "Piercing Bullet", "Penetration Boost"]
+            "tier_1": ["Bullet Explosion", "Volley Shot", "Rapid Fire", "Splitting Bullet"],
+            "tier_2": ["Explosion Expansion", "Volley Shot", "Piercing Bullet", "Penetration Boost"]
         },
         "laser": {
-            "tier_1": ["Energy Surge", "Laser Reflection", "Stable Energy", "Multi-Strike"],
-            "tier_2": ["Slow Laser", "Stable Energy", "Stable Energy", "Energy Boost"]
+            "tier_1": ["Additional Sweep", "Laser Reflection", "Stable Energy", "Multi-Strike"],
+            "tier_2": ["Vulnerable Laser", "Laser Reflection", "Laser Reflection", "Tear Explosion"]
         },
         "aeroblast": {
-            "tier_1": ["Shotgun Barrage", "Multiple Blast", "Impact Enhancement", "Central Blast"],
-            "tier_2": ["Extra Loading", "Multiple Blast", "Impact Enhancement", "Chain Explosion"]
+            "tier_1": ["Floating Mine", "Multiple Blast", "Impact Enhancement", "Massive Explosion"],
+            "tier_2": ["Wide Minefield", "Multiple Blast", "Multiple Blast", "Range Extension"]
         },
-        "beam": {
-            "tier_1": ["Damage Increase", "Efficient Beam", "High-Frequency Beam", "Beam Penetration"],
-            "tier_2": ["Stacking Damage", "Efficient Beam", "Efficient Beam", "Slaughtering Beam"]
+        "sky_guard": {
+            "tier_1": ["Ignition", "Volley Missile", "Explosion Spread", "Burning Area"],
+            "tier_2": ["Ignition Amplification", "Volley Missile", "Explosion Spread", "Strong Impact"]
         },
-        "firewheel_drone": {
-            "tier_1": ["Mini Drones", "Size Boost", "Duration Extension", "Hold the Ground"],
-            "tier_2": ["Killing Array", "Duration Extension", "Duration Extension", "Killing Charge"]
+        "thunderbolt": {
+            "tier_1": ["Lightning Paralysis", "Continuous Strike", "Swift Strike", "Lightning Expansion"],
+            "tier_2": ["Paralysis Extension", "Continuous Strike", "Swift Strike", "Extra Strike"]
         },
         "railgun": {
             "tier_1": ["Basic Split", "Shell Salvo", "Railgun Upgrade", "Power Penetration"],
@@ -38,9 +38,9 @@
             "tier_1": ["Trap Matrix", "Electro Chain", "Electro Acceleration", "Electro Interference"],
             "tier_2": ["Enhanced Matrix", "Electro Chain", "Electro Chain", "Expanded Shockwave"]
         },
-        "gravity_vortex": {
-            "tier_1": ["Small Black Hole", "Wide Field", "Extended Field", "Extended Pull"],
-            "tier_2": ["Black Hole Expansion", "Extended Field", "Extended Field", "Extended Range"]
+        "disruption_drone": {
+            "tier_1": ["Random Disturbance", "Field Expansion", "Field Duration", "Stasis Field"],
+            "tier_2": ["Rewind Teleport", "Field Expansion", "Field Expansion", "Quick Cooldown"]
         },
         "hive": {
             "tier_1": ["Swarm Echo", "Rapid Barrage", "Dense Swarm", "Wasp Evolution II"],

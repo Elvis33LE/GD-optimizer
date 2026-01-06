@@ -175,7 +175,7 @@ def get_active_chains_text(tower_id):
     if tower_id not in st.session_state.card_setup: return ""
     setup = st.session_state.card_setup[tower_id]
     selected_names = set([c for c in (setup.get("tier_1", []) + setup.get("tier_2", [])) if c])
-    chains = {} 
+    chains = {}
     for tier in [1, 2]:
         for card in cards_db.get(tower_id, {}).get(tier, []):
             if card['name'] in selected_names and 'chain_group' in card:
@@ -189,6 +189,14 @@ def get_active_chains_text(tower_id):
         roman = "I" * step if step < 4 else str(step)
         parts.append(f"{group} ({roman})")
     return "⛓️ " + ", ".join(parts)
+
+def has_matrix_thunderbolt_setup():
+    """Check if Tesla Coil has Trap Matrix + Enhanced Matrix equipped (Matrix Thunderbolt setup)."""
+    if "tesla_coil" not in st.session_state.card_setup:
+        return False
+    setup = st.session_state.card_setup["tesla_coil"]
+    equipped = set([c for c in (setup.get("tier_1", []) + setup.get("tier_2", [])) if c])
+    return "Trap Matrix" in equipped and "Enhanced Matrix" in equipped
 
 def calculate_single_score(enemy_id, tower_id):
     enemy = enemies_db[enemy_id]
@@ -293,53 +301,106 @@ def solve_optimal_loadout(wave_enemies, inventory_towers, mode_2vs1=False):
     best_allocation = None
     best_wave_scores = []
 
-    for w1_set in combinations(top_9, 3):
-        remaining_6 = [x for x in top_9 if x not in w1_set]
-        for w2_set in combinations(remaining_6, 3):
-            w3_set = [x for x in remaining_6 if x not in w2_set]
-            current_sets = [w1_set, w2_set, w3_set]
+    # Helper function to calculate score for a tower set
+    def calculate_set_score(tower_set, wave_idx):
+        if wave_idx >= len(wave_enemies): return 0
+        enemy = enemies_db[wave_enemies[wave_idx]]
+        wave_score = sum(scores_matrix[wave_idx][t] for t in tower_set)
+        synergy_bonus = 0
 
-            current_wave_scores = []
+        for pair in combinations(tower_set, 2):
+            key = frozenset(pair)
+            if key in synergy_db:
+                for combo in synergy_db[key]:
+                    rating = combo.get('score', 5)
+                    combo_points = rating * 10
+                    tags = get_combo_tags(combo['description'], combo['name'])
 
-            for wave_idx, tower_set in enumerate(current_sets):
-                # Safety index check
-                if wave_idx >= len(wave_enemies): break
+                    if any(t in enemy.get('weakness_types', []) for t in tags): combo_points *= 1.5
+                    if any(t in enemy.get('resistance_types', []) for t in tags): combo_points *= 0.5
 
-                enemy = enemies_db[wave_enemies[wave_idx]]
-                wave_score = sum(scores_matrix[wave_idx][t] for t in tower_set)
-                synergy_bonus = 0
+                    requires_burn = "burn" in combo['description'].lower()
+                    requires_slow = "slow" in combo['description'].lower()
+                    if requires_burn and "Burn" in setup_conditions: combo_points *= 1.4
+                    if requires_slow and "Slow" in setup_conditions: combo_points *= 1.3
+                    if "Vulnerable" in tags: wave_score *= 1.15
 
-                for pair in combinations(tower_set, 2):
-                    key = frozenset(pair)
-                    if key in synergy_db:
-                        for combo in synergy_db[key]:
-                            rating = combo.get('score', 5)
-                            combo_points = rating * 10
-                            tags = get_combo_tags(combo['description'], combo['name'])
+                    synergy_bonus += combo_points
 
-                            if any(t in enemy.get('weakness_types', []) for t in tags): combo_points *= 1.5
-                            if any(t in enemy.get('resistance_types', []) for t in tags): combo_points *= 0.5
+        return wave_score + synergy_bonus
 
-                            requires_burn = "burn" in combo['description'].lower()
-                            requires_slow = "slow" in combo['description'].lower()
-                            if requires_burn and "Burn" in setup_conditions: combo_points *= 1.4
-                            if requires_slow and "Slow" in setup_conditions: combo_points *= 1.3
-                            if "Vulnerable" in tags: wave_score *= 1.15
+    # Check if Tesla Coil has Matrix Thunderbolt setup (Trap Matrix + Enhanced Matrix)
+    has_tesla_matrix = has_matrix_thunderbolt_setup() and "tesla_coil" in inventory_towers
 
-                            synergy_bonus += combo_points
+    # Try both normal (3x3) and Tesla-only (1+4+4) configurations
+    configurations_to_try = []
 
-                current_wave_scores.append(wave_score + synergy_bonus)
+    # Normal configuration: 3 teams of 3 towers each
+    configurations_to_try.append(("normal", top_9))
 
-            if mode_2vs1:
-                # Maximize sum of best 2
-                optimization_metric = sum(sorted(current_wave_scores, reverse=True)[:2])
-            else:
-                optimization_metric = sum(current_wave_scores)
+    # Tesla-only configuration: 1 Tesla + 2 teams of 4
+    if has_tesla_matrix:
+        # Remove tesla_coil from top_9 for the other teams
+        other_towers = [t for t in top_9 if t != "tesla_coil"]
+        if len(other_towers) >= 8:  # Need 8 other towers for 2 teams of 4
+            configurations_to_try.append(("tesla_only", other_towers))
 
-            if optimization_metric > best_total:
-                best_total = optimization_metric
-                best_allocation = current_sets
-                best_wave_scores = current_wave_scores
+    for config_type, towers_to_use in configurations_to_try:
+        if config_type == "normal":
+            # Standard 3x3 configuration
+            for w1_set in combinations(towers_to_use, 3):
+                remaining_6 = [x for x in towers_to_use if x not in w1_set]
+                for w2_set in combinations(remaining_6, 3):
+                    w3_set = [x for x in remaining_6 if x not in w2_set]
+                    current_sets = [w1_set, w2_set, tuple(w3_set)]
+
+                    current_wave_scores = [calculate_set_score(s, i) for i, s in enumerate(current_sets)]
+
+                    if mode_2vs1:
+                        optimization_metric = sum(sorted(current_wave_scores, reverse=True)[:2])
+                    else:
+                        optimization_metric = sum(current_wave_scores)
+
+                    if optimization_metric > best_total:
+                        best_total = optimization_metric
+                        best_allocation = current_sets
+                        best_wave_scores = current_wave_scores
+
+        elif config_type == "tesla_only":
+            # Tesla-only configuration: 1 wave with just Tesla, 2 waves with 4 towers each
+            remaining_towers = towers_to_use[:8]  # Take top 8 other towers
+
+            # Try each wave position for the Tesla-only team
+            for tesla_wave_idx in range(3):
+                tesla_set = ("tesla_coil",)
+
+                # Get remaining towers after using Tesla
+                for_team_4 = remaining_towers
+
+                # Try all ways to split 8 towers into 2 teams of 4
+                for team1 in combinations(for_team_4, 4):
+                    team2 = tuple(x for x in for_team_4 if x not in team1)
+
+                    # Assign teams to waves based on tesla_wave_idx
+                    current_sets = [None, None, None]
+                    current_sets[tesla_wave_idx] = tesla_set
+
+                    # Fill the other two waves
+                    other_indices = [i for i in range(3) if i != tesla_wave_idx]
+                    current_sets[other_indices[0]] = team1
+                    current_sets[other_indices[1]] = team2
+
+                    current_wave_scores = [calculate_set_score(s, i) for i, s in enumerate(current_sets)]
+
+                    if mode_2vs1:
+                        optimization_metric = sum(sorted(current_wave_scores, reverse=True)[:2])
+                    else:
+                        optimization_metric = sum(current_wave_scores)
+
+                    if optimization_metric > best_total:
+                        best_total = optimization_metric
+                        best_allocation = current_sets
+                        best_wave_scores = current_wave_scores
 
     return best_allocation, best_wave_scores, None
 
@@ -411,12 +472,15 @@ def calculate_weekly_top_teams():
     top_teams = []
     for team_key in best_complete_set:
         effectiveness_data = team_effectiveness.get(team_key, {})
+        # Check if this is a Tesla-only team
+        is_tesla_only = team_key == ("tesla_coil",)
         team_info = {
             'towers': [towers_db[tid]['name'] for tid in team_key],
             'tower_ids': list(team_key),
             'count': team_counts.get(team_key, 0),
             'effectiveness': effectiveness_data,
-            'wave_index': effectiveness_data.get('wave_index', 0)
+            'wave_index': effectiveness_data.get('wave_index', 0),
+            'is_tesla_only': is_tesla_only
         }
         top_teams.append(team_info)
 
@@ -579,7 +643,16 @@ elif st.session_state.page == 'main':
 
         if top_teams:
             for i, team in enumerate(top_teams, 1):
-                with st.expander(f"Team {i}: {' - '.join(team['towers'])}", expanded=False):
+                # Add Tesla-only indicator
+                team_label = f"Team {i}: {' - '.join(team['towers'])}"
+                if team.get('is_tesla_only', False):
+                    team_label = f"⚡ Team {i}: {' - '.join(team['towers'])} (Solo)"
+
+                with st.expander(team_label, expanded=False):
+                    # Show Tesla Matrix Thunderbolt indicator at the top
+                    if team.get('is_tesla_only', False):
+                        st.success("⚡ **Matrix Thunderbolt Active** - Tesla Coil operates solo")
+
                     # Show team composition with colors
                     for tower_id in team['tower_ids']:
                         if tower_id in towers_db:
@@ -661,10 +734,17 @@ elif st.session_state.page == 'main':
                 
                 # Check list lengths
                 if len(best_loadout) == 3:
+                    # Check for Tesla Matrix Thunderbolt teams
+                    has_tesla_only = any(len(team) == 1 and team[0] == "tesla_coil" for team in best_loadout)
+
                     line1 = f"**Wave 1:** {' - '.join([towers_db[tid]['name'] for tid in best_loadout[0]])}"
                     line2 = f"**Wave 2:** {' - '.join([towers_db[tid]['name'] for tid in best_loadout[1]])}"
                     line3 = f"**Wave 3:** {' - '.join([towers_db[tid]['name'] for tid in best_loadout[2]])}"
-                    st.info(f"💡 **Quick Lineup:**\n\n{line1}\n\n{line2}\n\n{line3}")
+
+                    if has_tesla_only:
+                        st.info(f"💡 **Quick Lineup:** (⚡ Tesla Matrix Thunderbolt Active)\n\n{line1}\n\n{line2}\n\n{line3}")
+                    else:
+                        st.info(f"💡 **Quick Lineup:**\n\n{line1}\n\n{line2}\n\n{line3}")
                 
                 st.divider()
 
@@ -672,14 +752,18 @@ elif st.session_state.page == 'main':
                     if i >= len(best_loadout): break
                     enemy = enemies_db[enemy_id]
                     wave_towers = best_loadout[i]
-                    
+
                     is_sacrifice = (i == sacrifice_idx)
-                    
+                    is_tesla_only = len(wave_towers) == 1 and wave_towers[0] == "tesla_coil"
+
                     with st.container(border=True):
                         c_head, c_tags = st.columns([1, 2])
                         with c_head:
                             header_text = f"#### Wave {i+1}: {enemy['name']}"
-                            if is_sacrifice:
+                            if is_tesla_only:
+                                st.markdown(f"#### ⚡ Wave {i+1}: TESLA MATRIX THUNDERBOLT")
+                                st.caption(f"Enemy: {enemy['name']} (Solo Mode)")
+                            elif is_sacrifice:
                                 st.markdown(f"#### 💀 Wave {i+1}: SACRIFICIAL TEAM")
                                 st.caption(f"Enemy: {enemy['name']} (Expected Loss)")
                             else:
@@ -724,21 +808,35 @@ elif st.session_state.page == 'main':
                                 st.caption(f"└ {desc}")
                             st.markdown("")
 
-                        t_cols = st.columns(3)
+                        # Adjust column layout based on team size
+                        if is_tesla_only:
+                            # Tesla-only team: single centered display
+                            t_cols = st.columns([1, 2, 1])
+                            display_col = t_cols[1]
+                        else:
+                            # Normal team: 3 columns
+                            t_cols = st.columns(3)
+
                         sorted_towers = sorted(wave_towers, key=lambda tid: calculate_single_score(enemy_id, tid)[0], reverse=True)
 
                         for idx, t_id in enumerate(sorted_towers):
-                            with t_cols[idx]:
+                            # For Tesla-only, always use center column; for normal, use indexed columns
+                            target_col = display_col if is_tesla_only else t_cols[idx]
+                            with target_col:
                                 t_data = towers_db[t_id]
                                 score, note = calculate_single_score(enemy_id, t_id)
                                 color = TYPE_COLORS.get(t_data['type'], "#fff")
                                 icon_svg = get_svg(t_data.get('icon', 'beam'), color)
                                 b64_svg = base64.b64encode(icon_svg.encode('utf-8')).decode("utf-8")
-                                
+
                                 active_chains = get_active_chains_text(t_id)
-                                
+
+                                # Add special styling for Tesla with Matrix Thunderbolt
+                                border_style = "2px solid #ffd700" if is_tesla_only and t_id == "tesla_coil" else "1px solid #333"
+                                bg_style = "#2a2a1a" if is_tesla_only and t_id == "tesla_coil" else "#1e1e1e"
+
                                 html_code = textwrap.dedent(f"""
-                                <div style="background-color: #1e1e1e; border: 1px solid #333; border-radius: 6px; padding: 10px;">
+                                <div style="background-color: {bg_style}; border: {border_style}; border-radius: 6px; padding: 10px;">
                                     <div style="display: flex; align-items: center; gap: 10px;">
                                         <img src="data:image/svg+xml;base64,{b64_svg}" style="width:40px; height:40px;">
                                         <div>
@@ -750,7 +848,7 @@ elif st.session_state.page == 'main':
                                         </div>
                                     </div>
                                     <div style="margin-top:6px;">
-                                        {f'<div style="font-size:0.75em; color:#4ea8de; margin-bottom:2px;">{active_chains}</div>' if active_chains else ''}
+                                        {f'<div style="font-size:0.75em; color:#ffd700; margin-bottom:2px;">⚡ Matrix Thunderbolt: {active_chains}</div>' if active_chains and is_tesla_only else (f'<div style="font-size:0.75em; color:#4ea8de; margin-bottom:2px;">{active_chains}</div>' if active_chains else '')}
                                         <div style="font-size:0.7em; color:#aaa; line-height:1.2;">{note}</div>
                                     </div>
                                 </div>
