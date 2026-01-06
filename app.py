@@ -368,40 +368,41 @@ def solve_optimal_loadout(wave_enemies, inventory_towers, mode_2vs1=False):
 
         elif config_type == "tesla_only":
             # Tesla-only configuration: 1 wave with just Tesla, 2 waves with 3 towers each
-            # Total: 1 + 3 + 3 = 7 towers (not 9!)
-            remaining_towers = [t for t in towers_to_use if t != "tesla_coil"]
+            # From the remaining 8 towers, pick the best 6 to form 2 teams of 3
+            # 2 towers will be unused
+            remaining_towers = [t for t in top_9 if t != "tesla_coil"]
 
-            if len(remaining_towers) >= 6:  # Need 6 other towers for 2 teams of 3
-                top_6_other = remaining_towers[:6]  # Take top 6 other towers
-
+            if len(remaining_towers) >= 8:  # Need 8 other towers to pick best 6
                 # Try each wave position for the Tesla-only team
                 for tesla_wave_idx in range(3):
                     tesla_set = ("tesla_coil",)
 
-                    # Try all ways to split 6 towers into 2 teams of 3
-                    for team1 in combinations(top_6_other, 3):
-                        team2 = tuple(x for x in top_6_other if x not in team1)
+                    # Try all combinations of 6 towers from the remaining 8
+                    for towers_for_teams in combinations(remaining_towers, 6):
+                        # Try all ways to split these 6 towers into 2 teams of 3
+                        for team1 in combinations(towers_for_teams, 3):
+                            team2 = tuple(x for x in towers_for_teams if x not in team1)
 
-                        # Assign teams to waves based on tesla_wave_idx
-                        current_sets = [None, None, None]
-                        current_sets[tesla_wave_idx] = tesla_set
+                            # Assign teams to waves based on tesla_wave_idx
+                            current_sets = [None, None, None]
+                            current_sets[tesla_wave_idx] = tesla_set
 
-                        # Fill the other two waves
-                        other_indices = [i for i in range(3) if i != tesla_wave_idx]
-                        current_sets[other_indices[0]] = team1
-                        current_sets[other_indices[1]] = team2
+                            # Fill the other two waves
+                            other_indices = [i for i in range(3) if i != tesla_wave_idx]
+                            current_sets[other_indices[0]] = team1
+                            current_sets[other_indices[1]] = team2
 
-                        current_wave_scores = [calculate_set_score(s, i) for i, s in enumerate(current_sets)]
+                            current_wave_scores = [calculate_set_score(s, i) for i, s in enumerate(current_sets)]
 
-                        if mode_2vs1:
-                            optimization_metric = sum(sorted(current_wave_scores, reverse=True)[:2])
-                        else:
-                            optimization_metric = sum(current_wave_scores)
+                            if mode_2vs1:
+                                optimization_metric = sum(sorted(current_wave_scores, reverse=True)[:2])
+                            else:
+                                optimization_metric = sum(current_wave_scores)
 
-                        if optimization_metric > best_total:
-                            best_total = optimization_metric
-                            best_allocation = current_sets
-                            best_wave_scores = current_wave_scores
+                            if optimization_metric > best_total:
+                                best_total = optimization_metric
+                                best_allocation = current_sets
+                                best_wave_scores = current_wave_scores
 
     return best_allocation, best_wave_scores, None
 
