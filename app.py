@@ -367,45 +367,47 @@ def solve_optimal_loadout(wave_enemies, inventory_towers, mode_2vs1=False):
                         best_wave_scores = current_wave_scores
 
         elif config_type == "tesla_only":
-            # Tesla-only configuration: 1 wave with just Tesla, 2 waves with 4 towers each
-            remaining_towers = towers_to_use[:8]  # Take top 8 other towers
+            # Tesla-only configuration: 1 wave with just Tesla, 2 waves with 3 towers each
+            # Total: 1 + 3 + 3 = 7 towers (not 9!)
+            remaining_towers = [t for t in towers_to_use if t != "tesla_coil"]
 
-            # Try each wave position for the Tesla-only team
-            for tesla_wave_idx in range(3):
-                tesla_set = ("tesla_coil",)
+            if len(remaining_towers) >= 6:  # Need 6 other towers for 2 teams of 3
+                top_6_other = remaining_towers[:6]  # Take top 6 other towers
 
-                # Get remaining towers after using Tesla
-                for_team_4 = remaining_towers
+                # Try each wave position for the Tesla-only team
+                for tesla_wave_idx in range(3):
+                    tesla_set = ("tesla_coil",)
 
-                # Try all ways to split 8 towers into 2 teams of 4
-                for team1 in combinations(for_team_4, 4):
-                    team2 = tuple(x for x in for_team_4 if x not in team1)
+                    # Try all ways to split 6 towers into 2 teams of 3
+                    for team1 in combinations(top_6_other, 3):
+                        team2 = tuple(x for x in top_6_other if x not in team1)
 
-                    # Assign teams to waves based on tesla_wave_idx
-                    current_sets = [None, None, None]
-                    current_sets[tesla_wave_idx] = tesla_set
+                        # Assign teams to waves based on tesla_wave_idx
+                        current_sets = [None, None, None]
+                        current_sets[tesla_wave_idx] = tesla_set
 
-                    # Fill the other two waves
-                    other_indices = [i for i in range(3) if i != tesla_wave_idx]
-                    current_sets[other_indices[0]] = team1
-                    current_sets[other_indices[1]] = team2
+                        # Fill the other two waves
+                        other_indices = [i for i in range(3) if i != tesla_wave_idx]
+                        current_sets[other_indices[0]] = team1
+                        current_sets[other_indices[1]] = team2
 
-                    current_wave_scores = [calculate_set_score(s, i) for i, s in enumerate(current_sets)]
+                        current_wave_scores = [calculate_set_score(s, i) for i, s in enumerate(current_sets)]
 
-                    if mode_2vs1:
-                        optimization_metric = sum(sorted(current_wave_scores, reverse=True)[:2])
-                    else:
-                        optimization_metric = sum(current_wave_scores)
+                        if mode_2vs1:
+                            optimization_metric = sum(sorted(current_wave_scores, reverse=True)[:2])
+                        else:
+                            optimization_metric = sum(current_wave_scores)
 
-                    if optimization_metric > best_total:
-                        best_total = optimization_metric
-                        best_allocation = current_sets
-                        best_wave_scores = current_wave_scores
+                        if optimization_metric > best_total:
+                            best_total = optimization_metric
+                            best_allocation = current_sets
+                            best_wave_scores = current_wave_scores
 
     return best_allocation, best_wave_scores, None
 
 def calculate_weekly_top_teams():
-    """Calculate the most frequently chosen tower teams across all wave combinations, ensuring all 9 towers are used"""
+    """Calculate the most frequently chosen tower teams across all wave combinations.
+    Accepts both normal 9-tower (3x3) and Tesla Matrix 7-tower (1+3+3) configurations."""
     if 'weekly_top_teams' in st.session_state:
         return st.session_state.weekly_top_teams
 
@@ -416,13 +418,13 @@ def calculate_weekly_top_teams():
 
     # Use user's inventory towers
     available_towers = st.session_state.get('user_towers', list(towers_db.keys()))
-    if len(available_towers) < 9:
+    if len(available_towers) < 7:  # Minimum 7 for Tesla Matrix mode
         return []
 
     # Count team appearances and track complete sets
     team_counts = {}
     team_effectiveness = {}
-    complete_sets = {}  # Track which 3-team sets use all 9 towers
+    complete_sets = {}  # Track which 3-team sets (can be 7 or 9 towers)
 
     # Generate all possible 3-wave combinations
     for wave_combo in combinations(weekly_enemies, 3):
@@ -430,12 +432,14 @@ def calculate_weekly_top_teams():
         best_loadout, _, _ = solve_optimal_loadout(list(wave_combo), available_towers, mode_2vs1=False)
 
         if best_loadout and len(best_loadout) == 3:
-            # Check if this loadout uses all 9 unique towers
+            # Count total unique towers used
             all_towers_used = set()
             for team in best_loadout:
                 all_towers_used.update(team)
 
-            if len(all_towers_used) == 9:  # Complete set using all towers
+            tower_count = len(all_towers_used)
+            # Accept both 9-tower (normal 3x3) and 7-tower (Tesla solo + 2x3) configurations
+            if tower_count == 9 or tower_count == 7:
                 # Create a key for the complete set (sorted for consistency)
                 sorted_teams = [tuple(sorted(team)) for team in best_loadout]
                 set_key = tuple(sorted(sorted_teams))  # Sort the 3 teams themselves
